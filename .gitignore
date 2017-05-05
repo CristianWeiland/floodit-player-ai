@@ -1,5 +1,6 @@
 *.swp
 *.swo
+*.o
 core
 ia
 a.out

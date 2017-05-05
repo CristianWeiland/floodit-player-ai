@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "utils.h"
 
 #define clear() printf("\033[H\033[J")
 
@@ -145,6 +146,24 @@ int acabou(tmapa m) {
     return 1;
 }
 
+void teste_lista() {
+    lista l = constroi_lista();
+    int *x;
+    x = malloc(sizeof(int));
+    *x = 12;
+    insere_lista((void*) x, l);
+
+    x = malloc(sizeof(int));
+    *x = 22;
+    insere_lista((void*) x, l);
+
+    no elem;
+    for(elem = l->primeiro; elem; elem = elem->proximo) {
+        x = (int*) elem->conteudo;
+        printf("Valor é %d\n", *x);
+    }
+}
+
 int main(int argc, char **argv) {
     int cor;
     tmapa m;
@@ -179,21 +198,6 @@ int main(int argc, char **argv) {
         ++Njogadas;
     }
 
-/*
-    mostra_mapa_cor(&m);
-
-    printf("Qual sua proxima jogada? ");
-    if(!scanf("%d", &cor))
-        puts("Erro lendo jogada.");
-
-    while(cor > 0 && cor <= m.ncores) {
-        pinta_mapa(&m, cor);
-        mostra_mapa_cor(&m); // para mostrar sem cores use mostra_mapa(&m);
-        printf("Qual sua proxima jogada? ");
-        if(!scanf("%d", &cor))
-            puts("Erro lendo jogada.");
-    }
-*/
     mostra_mapa_cor(&m); // para mostrar sem cores use mostra_mapa(&m);
 
     printf("Parabens! Voce venceu em %d jogadas!\n", Njogadas);

@@ -1,2 +1,11 @@
-all:
-	gcc -O2 -march=native -o ia ia.c
+CFLAGS=-std=c99
+
+.PHONY : all clean
+
+all: ia
+
+ia: ia.c utils.o
+	$(CC) -o $@ $^
+
+clean :
+	$(RM) ia *.o
