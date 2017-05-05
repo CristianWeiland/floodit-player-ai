@@ -5,6 +5,8 @@
 
 #define clear() printf("\033[H\033[J")
 
+#define FIRST_COLOR 1
+
 /*
 
 [
@@ -36,10 +38,36 @@ typedef struct {
     int *mapa;
 } tmapa;
 
+typedef struct {
+    int ncores;
+    // Array de tamanho ncores+FIRST_COLOR. fronteira[cor] indica quantos elementos serao adquiridos caso seja escolhida aquela cor.
+    int *fronteira;
+} info;
+
 inline int ID(int i, int j) {
     return i * Colunas + j;
 }
+/*
+int pega_informacoes_fronteira(info *dados, tmapa m) {
+    int i, j, minha_cor, *map;
 
+    map = m.mapa;
+    minha_cor = map[0];
+
+    for(i=0; i<dados->ncores; ++i) {
+        fronteira[i] = 0;
+    }
+
+    for(i=0; i<m.nlinhas; ++i) {
+        for(j=0; j<m.ncolunas; ++j) {
+            // Se eh da minha cor, ignora.
+            if(fronteira_externa(map, i, j)) {
+                dados->fronteira[map[ID(i,j)]]++;
+            }
+        }
+    }
+}
+*/
 void gera_mapa(tmapa *m, int semente) {
     int i, j;
 
@@ -145,6 +173,10 @@ int acabou(tmapa m) {
     return 1;
 }
 
+int proxima_jogada(tmapa m) {
+    return rand() % m.ncores + 1;
+}
+
 int main(int argc, char **argv) {
     int cor;
     tmapa m;
@@ -172,9 +204,7 @@ int main(int argc, char **argv) {
 
     while(!acabou(m)) {
         mostra_mapa_cor(&m); // para mostrar sem cores use mostra_mapa(&m);
-        printf("Qual sua proxima jogada? ");
-        if(!scanf("%d", &cor))
-            puts("Erro lendo jogada.");
+        cor = proxima_jogada(m);
         pinta_mapa(&m, cor);
         ++Njogadas;
     }
