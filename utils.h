@@ -1,11 +1,21 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
+#define PESO_DEFAULT 0
+
+int VerticeID;
+
+typedef struct celula celula;
 typedef struct no *no;
 typedef struct lista *lista;
 typedef struct grafo *grafo;
 typedef struct vertice *vertice;
 typedef struct aresta *aresta;
+
+struct celula {
+    int cor, counted;
+    vertice v;
+};
 
 struct no {
   void *conteudo;
@@ -19,17 +29,13 @@ struct lista {
 };
 
 struct grafo {
+    char *nome;
 	lista v;
-	char* nome;
-	int direcao;
-	int ponderado;
 };
 
 struct vertice {
-	char* nome;
+    int i, j, cor, id, elems;
 	lista saida, entrada;
-    int *rotulo;
-    int estado, atributo;
 };
 
 struct aresta {
@@ -59,6 +65,26 @@ grafo escreve_grafo(FILE *output, grafo g);
 grafo copia_grafo(grafo g);
 lista vizinhanca(vertice v, int direcao, grafo g);
 unsigned int grau(vertice v, int direcao, grafo g);
+
+// Funcoes criadas por mim. Soh as que tem // no final eu coloquei a implementacao.
+grafo constroi_grafo(void); //
+vertice constroi_vertice(void); //
+aresta constroi_aresta(void); //
+void remove_duplicada(void* a, vertice v);
+vertice insere_vertice(grafo g, int cor, int i, int j, int id);
+aresta insere_aresta(vertice saida, vertice chegada, long int peso);
+aresta copia_aresta(aresta a, grafo g);
+vertice copia_vertice(vertice v);
+grafo copia_subgrafo(grafo g, lista excecoes);
+int destroi_aresta(void *v); //
+int destroi_vertice(void *v); //
+int destroi_grafo(void* param); //
+vertice procura_vertice(grafo g, char* nome);
+int na_lista(lista l, void* conteudo);
+lista vertices_grafo(grafo g);
+void imprime_vertice(void* param);
+void imprime_lista_vertices(lista l);
+void imprime_lista_arestas(lista l);
 
 /*
 //-----------------------------------------------------------------------------
@@ -327,6 +353,108 @@ struct par {
 	char *head;
 	char *tail;
 };
+//------------------------------------------------------------------------------
+// Alloca memoria para um grafo
+grafo constroi_grafo(void);
+
+//------------------------------------------------------------------------------
+// Alloca memoria para um vertice
+vertice constroi_vertice(void);
+
+//------------------------------------------------------------------------------
+// Alloca memoria para uma aresta
+aresta constroi_aresta(void);
+
+//------------------------------------------------------------------------------
+// Dado um vertice, procura um apontador pra aresta a e remove ele
+void remove_duplicada(void* a, vertice v);
+
+//------------------------------------------------------------------------------
+// Cria um vertice, atribui a ele um nome e insere na lista de vertices do grafo
+vertice insere_vertice(grafo g, char* nome);
+
+//------------------------------------------------------------------------------
+// Cria uma aresta com atributos vs, vc e peso sendo, respectivamente,
+// saida, chegada e peso, e insere nas 2 listas (do vertice de entrada e do de saida).
+aresta insere_aresta(vertice saida, vertice chegada, long int peso);
+
+//------------------------------------------------------------------------------
+// Cria uma copia da aresta e retorna um apontador para a nova aresta
+aresta copia_aresta(aresta a, grafo g);
+
+//------------------------------------------------------------------------------
+// Cria uma copia do vertice e retorna um apontador para o novo vertice
+vertice copia_vertice(vertice v);
+
+//------------------------------------------------------------------------------
+// Faz uma copia de um grafo, mas nao insere elementos que aparecem na lista
+// de vertices excecoes, tambem garantindo que as arestas que tinham uma ponta
+// em algum desses vertices tambem nao sao inseridas.
+grafo copia_subgrafo(grafo g, lista excecoes);
+
+//------------------------------------------------------------------------------
+// Desalloca memoria de um elemento par (argumento eh void* para a funcao poder ser
+// usada como parametro da funcao destroi_lista)
+int destroi_par(void* param);
+
+//------------------------------------------------------------------------------
+// Desalloca memoria de uma aresta (argumento eh void* para a funcao poder ser
+// usada como parametro da funcao destroi_lista)
+int destroi_aresta(void *v);
+
+//------------------------------------------------------------------------------
+// Desalloca memoria de um vertice (argumento eh void* para a funcao poder ser
+// usada como parametro da funcao destroi_lista)
+int destroi_vertice(void *v);
+
+//------------------------------------------------------------------------------
+// Procura na lista de vertices do grafo um vertice com o nome do parametro
+// retorna NULL em caso de erro ou caso nao ache o vertice
+// retorna o vertice caso ache ele
+vertice procura_vertice(grafo g, char* nome);
+
+//------------------------------------------------------------------------------
+// Devolve 1, se o vertice v2 é adjacente (ligado por uma aresta) a v, ou
+//         0, caso contrário
+int adjacente(vertice v, vertice v2);
+
+//------------------------------------------------------------------------------
+// Devolve 1, se o vertice é uma clique em g, ou
+//         0, caso contrário
+//
+// Um vertice V de um conjunto de vertices C de um grafo G é uma clique em G
+// se todo vértice no conjunto C é vizinho de V em G
+int vertice_clique(vertice v, lista l);
+
+//------------------------------------------------------------------------------
+// Verifica se um elemento 'Par' ja foi inserido na tabela. Caso ja tenha sido
+// inserido, retorna 1. Caso nao tenha sido inserido, insere-o e retorna 0.
+int inserido(char* n1, char* n2, lista tabela);
+
+//------------------------------------------------------------------------------
+// percorre a lista e retorna 1 se o parametro conteudo estiver dentro dessa
+// lista, retorna 0 caso contrario.
+int na_lista(lista l, void* conteudo);
+
+//------------------------------------------------------------------------------
+// Retorna a lista de vertices de um grafo g
+lista vertices_grafo(grafo g);
+
+//------------------------------------------------------------------------------
+// Imprime o rotulo de um vertice v.
+void imprime_rotulo(vertice v);
+
+//------------------------------------------------------------------------------
+// Imprime um vertice
+void imprime_vertice(void* param);
+
+//------------------------------------------------------------------------------
+// Imprime uma lista de vertices.
+void imprime_lista_vertices(lista l);
+
+//------------------------------------------------------------------------------
+// Imprime uma lista de arestas.
+void imprime_lista_arestas(lista l);
 
 */
 #endif

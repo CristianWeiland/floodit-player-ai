@@ -130,6 +130,127 @@ int remove_no(struct lista *l, struct no *rno, int destroi(void *)) {
     }
     return 0;
 }
+
+grafo constroi_grafo(void) {
+    grafo g;
+    g = (grafo) malloc(sizeof(struct grafo));
+    if(g == NULL) {
+        perror("(constroi_grafo) Erro ao allocar memoria para o grafo.");
+        return NULL;
+    }
+    g->v = constroi_lista();
+    return g;
+}
+
+vertice constroi_vertice(void) {
+    vertice v = malloc(sizeof(struct vertice));
+    if(v == NULL) {
+        perror("(constroi_vertice) Erro ao allocar memoria para o vertice.");
+        return NULL;
+    }
+    if(!(v->saida = constroi_lista()))
+        puts("Erro ao construir lista de saida.");
+    if(!(v->entrada = constroi_lista()))
+        puts("Erro ao construir lista de saida.");
+    return v;
+}
+
+aresta constroi_aresta(void) {
+    aresta a = malloc(sizeof(struct aresta));
+    if(a == NULL) {
+        perror("(constroi_aresta) Erro ao allocar memoria para aresta.");
+        return NULL;
+    }
+    a->peso = PESO_DEFAULT;
+    return a;
+}
+
+int destroi_aresta(void* param) {
+    // Nao damos free em a->vs ou a->vc, porque sao os vertices. Eles estao sendo apontados por outro lugar.
+    // Destroi_aresta soh destroi a propria aresta.
+    aresta a = (aresta) param;
+    if(a == NULL) return 1; // Jah foi destruido
+    free(a);
+    return 1;
+}
+
+vertice insere_vertice(grafo g, int cor, int i, int j, int id) {
+    void* content = constroi_vertice();
+    no novo = insere_lista(content, g->v);
+    if(novo == NULL) {
+        perror("(insere_vertice) Erro ao inserir vertice no grafo.");
+        return NULL;
+    }
+    vertice v = conteudo(novo);
+    v->cor = cor;
+    v->i = i;
+    v->j = j;
+    v->id = id;
+    v->elems = 0;
+    return v;
+}
+
+int destroi_vertice(void* param) { // Soh funciona pra ser chamado dentro de destroi_grafo.
+    vertice v = (vertice) param;
+    if(v == NULL) {
+        return 1; // Jah foi destruido
+    }
+    if(!destroi_lista(v->saida, destroi_aresta)) {
+        perror("(destroi_vertice) Erro ao destruir lista.");
+        return 0;
+    }
+    return 1;
+}
+
+int destroi_grafo(void* param) {
+    grafo g = (grafo) param;
+    if(g == NULL)
+        return 1;
+    if(!destroi_lista(g->v, destroi_vertice)) {
+        perror("(destroi_grafo) Erro ao destruir grafo.");
+        return 0;
+    }
+    free(g);
+    return 1;
+}
+
+grafo escreve_grafo(FILE *output, grafo g) {
+    if(g == NULL) {
+        puts("Grafo nulo. Abortando...");
+        return NULL;
+    }
+    puts("Escrevendo grafo: {");
+
+    no elem, childElem;
+    vertice v;
+    aresta a;
+
+    // Imprime todos os vertices
+    for(elem = primeiro_no(g->v); elem; elem = proximo_no(elem)) {
+        v = (vertice) conteudo(elem);
+        fprintf(output,"   \"%d\", cor = %d, elems = %d\n", v->id, v->cor, v->elems);
+    }
+
+    //fprintf(output,"\n");
+
+    // Imprime todas as arestas, percorrendo todas as listas de entrada dos vertices
+    for(elem = primeiro_no(g->v); elem; elem = proximo_no(elem)) {
+        v = (vertice) conteudo(elem);
+        for(childElem = primeiro_no(v->entrada); childElem; childElem = proximo_no(childElem)) {
+            a = (aresta) conteudo(childElem);
+            fprintf(output,"   \"%d\" -- \"%d\"", a->vs->id, a->vc->id);
+            if(a->peso != PESO_DEFAULT)
+                fprintf(output," [peso=%ld]", a->peso);
+            fprintf(output,"\n");
+        }
+    }
+
+    fprintf(output,"}\n");
+
+    return g;
+}
+
+
 /* Isso aqui eh algum xunxo que eu fiz no T1. Vou deixar comentado.
 int remove_no(struct lista *l, struct no *rno, int destroi(void *)) {
     no atual, anterior;
