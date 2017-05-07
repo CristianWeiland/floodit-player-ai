@@ -5,7 +5,7 @@ CFLAGS=-std=c99
 all: ia
 
 ia: ia.c utils.o
-	$(CC) -o $@ $^
+	$(CC) -g -o $@ $^
 
 clean :
 	$(RM) ia *.o

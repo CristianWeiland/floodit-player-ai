@@ -138,6 +138,7 @@ grafo constroi_grafo(void) {
         perror("(constroi_grafo) Erro ao allocar memoria para o grafo.");
         return NULL;
     }
+    g->len = 0;
     g->v = constroi_lista();
     return g;
 }
@@ -148,10 +149,15 @@ vertice constroi_vertice(void) {
         perror("(constroi_vertice) Erro ao allocar memoria para o vertice.");
         return NULL;
     }
+    if(!(v->i = (int *) malloc(TamMatriz * sizeof(int))))
+        puts("Erro ao allocar memoria para i do vertice.");
+    if(!(v->j = (int *) malloc(TamMatriz * sizeof(int))))
+        puts("Erro ao allocar memoria para i do vertice.");
     if(!(v->saida = constroi_lista()))
         puts("Erro ao construir lista de saida.");
     if(!(v->entrada = constroi_lista()))
-        puts("Erro ao construir lista de saida.");
+        puts("Erro ao construir lista de entrada.");
+    v->elems = 0;
     return v;
 }
 
@@ -174,7 +180,7 @@ int destroi_aresta(void* param) {
     return 1;
 }
 
-vertice insere_vertice(grafo g, int cor, int i, int j, int id) {
+vertice insere_vertice(grafo g, int cor, int id) {
     void* content = constroi_vertice();
     no novo = insere_lista(content, g->v);
     if(novo == NULL) {
@@ -183,11 +189,35 @@ vertice insere_vertice(grafo g, int cor, int i, int j, int id) {
     }
     vertice v = conteudo(novo);
     v->cor = cor;
-    v->i = i;
-    v->j = j;
     v->id = id;
-    v->elems = 0;
     return v;
+}
+
+aresta insere_aresta(vertice saida, vertice chegada, long int peso) {
+    //printf("Criando aresta para os vertices %d e %d...\n", saida->id, chegada->id);
+    aresta a = constroi_aresta();
+    a->vs = saida;
+    a->vc = chegada;
+    a->peso = peso;
+    if(!saida->saida) {
+        puts("(insere_aresta) Problema na lista de saida.");
+        return NULL;
+    }
+    if(!chegada->entrada) {
+        puts("(insere_aresta) Problema na lista de saida.");
+        return NULL;
+    }
+    // Insere a aresta na lista de arestas do vertice de saida
+    if(insere_lista((void*)a, saida->saida) == NULL) {
+        perror("(insere_aresta) Erro ao inserir aresta no vertice.");
+        return NULL;
+    }
+    // Insere a aresta na lista de arestas do vertice de chegada
+    if(insere_lista((void*)a, chegada->entrada) == NULL) {
+        perror("(insere_aresta) Erro ao inserir aresta no vertice.");
+        return NULL;
+    }
+    return a;
 }
 
 int destroi_vertice(void* param) { // Soh funciona pra ser chamado dentro de destroi_grafo.

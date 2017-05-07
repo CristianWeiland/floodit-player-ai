@@ -6,6 +6,7 @@
 #define clear() printf("\033[H\033[J")
 #define FIRST_COLOR 1
 #define COUNTED 1
+#define INITIAL_DISTANCE -1
 
 /*
 
@@ -55,10 +56,12 @@ void pinta_mapa(tmapa *m, int cor);
 int acabou(tmapa m);
 int borda(int i, int j);
 void teste_lista();
-void cria_vertices(tmapa m, grafo g);
-void adiciona_vizinhanca(tmapa m, int i, int j, vertice v);
-void cria_arestas();
-grafo cria_grafos(tmapa m);
+void zera_counted(tmapa *m);
+void cria_vertices(tmapa *m, grafo g);
+void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v);
+void cria_arestas(tmapa *m, grafo g);
+void pega_vizinhos(tmapa *m, int i, int j, vertice v);
+grafo cria_grafos(tmapa *m);
 int proxima_jogada(tmapa m);
 
 #endif

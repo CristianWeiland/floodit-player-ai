@@ -5,6 +5,8 @@
 #include "ia.h"
 #include "utils.h"
 
+int callCount = 0;
+
 inline int ID(int i, int j) {
     return i * Colunas + j;
 }
@@ -120,8 +122,9 @@ int acabou(tmapa m) {
 }
 
 inline int borda(int i, int j) {
-    if(i < 0 || j < 0 || i >= Linhas || j >= Colunas)
+    if(i < 0 || j < 0 || i >= Linhas || j >= Colunas) {
         return 1;
+    }
     return 0;
 }
 
@@ -143,41 +146,49 @@ void teste_lista() {
     }
 }
 
-void cria_vertices(tmapa m, grafo g) {
+inline void zera_counted(tmapa *m) {
+    int i;
+    for(i=0; i<m->tam; ++i) {
+        m->mapa[i].counted = 0;
+    }
+}
+
+void cria_vertices(tmapa *m, grafo g) {
     int i, j;
     celula c;
     vertice v;
 
-    mostra_mapa_cor(&m, 0);
+    mostra_mapa_cor(m, 0);
 
-    for(i=0; i<m.tam; ++i) {
-        m.mapa[i].counted = 0;
-    }
-    for(i=0; i<m.nlinhas; ++i) {
-        for(j=0; j<m.ncolunas; ++j) {
-            c = m.mapa[ID(i,j)];
+    zera_counted(m);
+
+    for(i=0; i<m->nlinhas; ++i) {
+        for(j=0; j<m->ncolunas; ++j) {
+            c = m->mapa[ID(i,j)];
             if(c.counted) {
                 continue;
             }
-            v = insere_vertice(g, c.cor, i, j, VerticeID);
+            v = insere_vertice(g, c.cor, VerticeID);
             ++VerticeID;
-            c.v = v;
-            c.counted = 1;
+            m->mapa[ID(i,j)].v = v;
             adiciona_vizinhanca(m, i, j, v);
         }
     }
     return;
 }
 
-void adiciona_vizinhanca(tmapa m, int i, int j, vertice v) {
+void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v) {
     if(borda(i,j))
         return;
-    celula c = m.mapa[ID(i,j)];
+    celula c = m->mapa[ID(i,j)];
     if(c.counted || v->cor != c.cor)
         return;
+    //printf("Vertice %d ganhou %d e %d na posicao %d.\n", v->id, i, j, v->elems);
+    v->i[v->elems] = i;
+    v->j[v->elems] = j;
     ++(v->elems);
-    m.mapa[ID(i,j)].v = v;
-    m.mapa[ID(i,j)].counted = COUNTED;
+    m->mapa[ID(i,j)].v = v;
+    m->mapa[ID(i,j)].counted = COUNTED;
     adiciona_vizinhanca(m, i+1, j, v);
     adiciona_vizinhanca(m, i-1, j, v);
     adiciona_vizinhanca(m, i, j+1, v);
@@ -185,12 +196,204 @@ void adiciona_vizinhanca(tmapa m, int i, int j, vertice v) {
     return;
 }
 
-void cria_arestas() {}
+void cria_arestas(tmapa *m, grafo g) {
+    no elem;
+    int i, j, head, tail = 1; // Head vai indicar qual elemento eu devo olhar em l, pois nao vou remove-los, apenas ignora-los.
+                              // Tail serve pra saber onde eu devo adicionar o proximo elemento e quando parar o laco.
+    int auxi, auxj;
+    vertice l[g->len], v;
+    aresta a;
 
-grafo cria_grafos(tmapa m) {
+    zera_counted(m);
+
+    l[0] = m->mapa[0].v;
+
+    // Inicializa d pra todos os vertices
+    for(elem = primeiro_no(g->v); elem; elem = proximo_no(elem)) {
+        v = (vertice) conteudo(elem);
+        v->d = INITIAL_DISTANCE;
+    }
+
+    m->mapa[0].v->d = 0;
+
+    for(head = 0; head < tail; ++head) {
+        v = l[head];
+        // ++head "remove" um elemento da lista.
+        //printf("Rodando vertice %d com indice %d, v = %p, i = %p e j = %p. Elems = %d.\n", v->id, head, v, v->i, v->j, v->elems);
+        printf("Rodando vertice %d com indice %d, elems = %d, i[0] = %d, j[0] = %d.\n", v->id, head, v->elems, v->i[0], v->j[0]);
+        //printf("Elementos sao i = %d, j = %d.\n", (v->i)[0], (v->j)[0]);
+        auxi = (v->i)[0];
+        auxj = (v->j)[0];
+        // Possivelmente esse laco vai dar loop infinito, uma aresta adicionando outra.
+        pega_vizinhos(m, auxi, auxj, v);
+        printf("Peguei os vizinhos. Vou comecar agora com %p.\n", primeiro_no(v->saida));
+        for(elem = primeiro_no(v->saida); elem; elem = proximo_no(elem)) {
+            // Acrescenta mais elementos na lista pra continuar esse laco.
+            printf("Adicionando elemento em l...\n");
+            a = (aresta) conteudo(elem);
+            l[tail] = a->vc;
+            ++tail;
+        }
+    }
+    puts("Terminei!");
+}
+
+void pega_vizinhos(tmapa *m, int i, int j, vertice v) {
+    printf("Pegando vizinhos com i = %d e j = %d.\n", i, j);
+    if(borda(i,j) == 1) {
+        printf("Bordinha.\n");
+        return;
+    }
+    printf("Celula eh %d, index = %d\n", m->mapa[ID(i,j)], ID(i,j));
+    if(m->mapa[ID(i,j)].cor == v->cor) { // Achei outro cara do meu vertice.
+        // Isso elimina o Quadrado Magico.
+        // Se eu contei ele, nao faco nada. Se nao contei ele ainda, digo que contei e chamo recursivamente.
+        printf("Mesma cor");
+        if(!(m->mapa[ID(i,j)].counted)) {
+            printf(", mas ja foi contado.");
+            m->mapa[ID(i,j)].counted = 1;
+            pega_vizinhos(m, i+1, j, v);
+            pega_vizinhos(m, i-1, j, v);
+            pega_vizinhos(m, i, j+1, v);
+            pega_vizinhos(m, i, j-1, v);
+        }
+        printf("\n");
+        return;
+    }
+
+    // Se cheguei aqui, eh porque a cor dele eh diferente.
+    // Entao eu devo verificar alguns casos:
+    // 1- Ja existe algum caminho menor pra esse vertice.
+    // 2- Ja existe algum caminho de mesmo tamanho que o meu pra esse vertice.
+    // 3- Nao existe nenhum caminho pra esse vertice.
+    // 4- Ja existe algum caminho maior que o meu pra esse vertice.
+
+    // O que fazer em cada caso:
+    // 1- Nao faco nada. Nao quero adicionar um caminho maior, isso pode dar treta nos algoritmos depois.
+    // 2- Cria mais uma aresta. Quero considerar os dois caminhos, pois eles tem tamanho igual.
+    // 3- Cria uma aresta e inicializa a distancia dele como (v->d) + 1.
+    // 4- Deleta todas as arestas que existiam antes, que fazem parte da lista de vertices de entrada do vertice destino (m->mapa[ID(i,j)].v->entrada).
+    //    Feito isso, eu entro no caso 3: nao existe nenhum caminho pra esse vertice.
+
+    int destDist = m->mapa[ID(i,j)].v->d;
+    int novaDistancia = (v->d) + 1; // Essa variavel contem a distancia que o vertice teria se passando por v fosse o menor caminho.
+
+    // Caso 1: Ja existe algum caminho menor pra esse vertice.
+    if( (destDist != INITIAL_DISTANCE) && (destDist < novaDistancia) ) {
+        return;
+    }
+
+    // Caso 4:
+    // Obs: Perceba que aqui nao tem return;, porque eu quero executar os passos do caso 3!
+    if( destDist > novaDistancia ) {
+        no elem;
+        aresta a;
+        // Preciso remover as arestas ja existentes. Pra isso tenho dois passos:
+        for(elem = primeiro_no(m->mapa[ID(i,j)].v->entrada); elem; elem = proximo_no(elem)) {
+            a = (aresta) conteudo(elem);
+            // Primeiro: Removo a aresta da lista de arestas de cada vertice.
+            if(!remove_no(a->vs->saida, (void *) a, NULL)) {
+                printf("Erro tirando aresta da lista de arestas do vertice a->vs->saida. Talvez eh a->vs->entrada?\n");
+            }
+            if(!remove_no(a->vc->entrada, (void *) a, NULL)) {
+                printf("Erro tirando aresta da lista de arestas do vertice a->vc->entrada. Talvez eh a->vc->saida?\n");
+            }
+            // Segundo: Destruo a aresta.
+            destroi_aresta(a);
+        }
+        // Nao deve ter return; aqui!
+    }
+
+    // Casos 2 e 3:
+    //    Distancia eh a mesma      ou  nao existe nenhum caminho ainda.
+    if( (destDist == novaDistancia) || (destDist == INITIAL_DISTANCE) ) {
+        // Cria mais uma aresta.
+        insere_aresta(v, m->mapa[ID(i,j)].v, 0);
+        // Nao faz mal eu fazer essa atribuicao, pois: se eh o caso 2, nao vai mudar nada; se eh o caso 1, vou setar a distancia corretamente.
+        m->mapa[ID(i,j)].v->d = novaDistancia;
+        return;
+    }
+    printf("Oopsie! Nao era pra chegar aqui...\n");
+    return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+void pega_vizinhos(tmapa *m, int i, int j, vertice v) {
+    //printf("i = %d, j = %d\n", i, j);
+    callCount++;
+    if(callCount > 100)
+        return;
+    if(borda(i,j) == 1) {
+        printf("Bordinha.\n");
+        return;
+    }
+    celula c = m->mapa[ID(i,j)];
+    if((c.v->d < (v->d+1) && c.v->d != -1) || (c.counted && c.v->d != v->d)) {
+        printf("Bordinha 1.\n");
+        return;
+    }
+    if(c.v != v) {
+        if(c.v != v && c.v->d == -1) {
+            printf("Achei um caminho novo!.\n");
+            m->mapa[ID(i,j)].v->d = (v->d) + 1;
+            insere_aresta(v, m->mapa[ID(i,j)].v, 0);
+            return;
+        }
+        //int aux = c.v->d;
+        //printf("d eh %d e %d\n", c.v->d, aux);
+        //if((c.v->d < (v->d + 1)) && aux != -1)
+            // Existe um caminho menor pra essa aresta, que nao sou eu.
+            //printf("Caminho menor.\n");
+            //return;
+        if(c.v->d == (v->d + 1)) {
+            // Achei um outro caminho de mesmo tamanho pra essa aresta. Cria isso como outra aresta.
+            insere_aresta(v, m->mapa[ID(i,j)].v, 0);
+            puts("Outro caminho, mesmo tamanho.");
+            printf("Bordinha 4.\n");
+            return;
+        }
+        if(c.v->d > (v->d + 1)) {
+            // Achei um caminho menor pra aresta. Isso provavelmente nao deve acontecer.
+            puts("WARNING!! WARNING!! WARNING!! VAI DAR RUIM!! LEIA COMENTARIO NA FUNCAO PEGA_VIZINHOS!!");
+            puts("WARNING!! WARNING!! WARNING!! VAI DAR RUIM!! LEIA COMENTARIO NA FUNCAO PEGA_VIZINHOS!!");
+            puts("WARNING!! WARNING!! WARNING!! VAI DAR RUIM!! LEIA COMENTARIO NA FUNCAO PEGA_VIZINHOS!!");
+            puts("WARNING!! WARNING!! WARNING!! VAI DAR RUIM!! LEIA COMENTARIO NA FUNCAO PEGA_VIZINHOS!!");
+            puts("WARNING!! WARNING!! WARNING!! VAI DAR RUIM!! LEIA COMENTARIO NA FUNCAO PEGA_VIZINHOS!!");
+            no elem;
+            for(elem = primeiro_no(c.v->saida); elem; elem = proximo_no(elem)) {
+                destroi_aresta(conteudo(elem)); // Isso nao vai funcionar. Eu nao to removendo das listas de arestas dos vertices. Nao vou arrumar isso por enquanto porque acho que esse caso nunca vai acontecer.
+            }
+            m->mapa[ID(i,j)].v->d = (v->d) + 1;
+            insere_aresta(v, m->mapa[ID(i,j)].v, 0);
+            return;
+        }
+    }
+    puts("Caso 6.");
+    m->mapa[ID(i,j)].counted = 1;
+    pega_vizinhos(m, i+1, j, v);
+    pega_vizinhos(m, i-1, j, v);
+    pega_vizinhos(m, i, j+1, v);
+    pega_vizinhos(m, i, j-1, v);
+    return;
+}
+*/
+grafo cria_grafos(tmapa *m) {
     grafo g = constroi_grafo();
     cria_vertices(m, g);
-    cria_arestas();
+    cria_arestas(m, g);
     return g;
 }
 
@@ -218,6 +421,7 @@ int main(int argc, char **argv) {
     Njogadas = 0;
     Linhas = m.nlinhas;
     Colunas = m.ncolunas;
+    TamMatriz = Linhas * Colunas;
 
     if(argc == 5)
         semente = atoi(argv[4]);
@@ -226,7 +430,7 @@ int main(int argc, char **argv) {
 
     gera_mapa(&m, semente);
 
-    g = cria_grafos(m);
+    g = cria_grafos(&m);
 
     escreve_grafo(stdout, g);
 

@@ -3,7 +3,7 @@
 
 #define PESO_DEFAULT 0
 
-int VerticeID;
+int VerticeID, TamMatriz;
 
 typedef struct celula celula;
 typedef struct no *no;
@@ -18,23 +18,24 @@ struct celula {
 };
 
 struct no {
-  void *conteudo;
-  no proximo;
+    void *conteudo;
+    no proximo;
 };
 
 struct lista {
-  unsigned int tamanho;
-  int padding;
-  no primeiro;
+    unsigned int tamanho;
+    int padding;
+    no primeiro;
 };
 
 struct grafo {
+    int len;
     char *nome;
 	lista v;
 };
 
 struct vertice {
-    int i, j, cor, id, elems;
+    int *i, *j, cor, id, elems, d;
 	lista saida, entrada;
 };
 
@@ -71,7 +72,7 @@ grafo constroi_grafo(void); //
 vertice constroi_vertice(void); //
 aresta constroi_aresta(void); //
 void remove_duplicada(void* a, vertice v);
-vertice insere_vertice(grafo g, int cor, int i, int j, int id);
+vertice insere_vertice(grafo g, int cor, int id);
 aresta insere_aresta(vertice saida, vertice chegada, long int peso);
 aresta copia_aresta(aresta a, grafo g);
 vertice copia_vertice(vertice v);
