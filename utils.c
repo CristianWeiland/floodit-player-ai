@@ -195,7 +195,6 @@ vertice insere_vertice(grafo g, int cor, int id) {
 }
 
 aresta insere_aresta(vertice saida, vertice chegada, long int peso) {
-    //printf("Criando aresta para os vertices %d e %d...\n", saida->id, chegada->id);
     aresta a = constroi_aresta();
     a->vs = saida;
     a->vc = chegada;
@@ -262,7 +261,7 @@ grafo escreve_grafo(FILE *output, grafo g) {
         fprintf(output,"   \"%d\", cor = %d, elems = %d\n", v->id, v->cor, v->elems);
     }
 
-    //fprintf(output,"\n");
+    fprintf(output,"\n");
 
     // Imprime todas as arestas, percorrendo todas as listas de entrada dos vertices
     for(elem = primeiro_no(g->v); elem; elem = proximo_no(elem)) {

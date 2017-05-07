@@ -39,13 +39,6 @@ typedef struct {
     celula *mapa;
 } tmapa;
 
-typedef struct {
-   int ncores;
-    // Array de tamanho ncores+FIRST_COLOR. fronteira[cor] indica quantos elementos serao adquiridos caso seja escolhida aquela cor.
-    int *fronteira;
-} info;
-
-
 int ID(int i, int j);
 void gera_mapa(tmapa *m, int semente);
 void carrega_mapa(tmapa *m);
@@ -60,7 +53,7 @@ void zera_counted(tmapa *m);
 void cria_vertices(tmapa *m, grafo g);
 void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v);
 void cria_arestas(tmapa *m, grafo g);
-void pega_vizinhos(tmapa *m, int i, int j, vertice v, celula* x);
+void pega_vizinhos(tmapa *m, int i, int j, vertice v);
 grafo cria_grafos(tmapa *m);
 int proxima_jogada(tmapa m);
 
