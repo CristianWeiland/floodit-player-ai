@@ -190,6 +190,7 @@ vertice insere_vertice(grafo g, int cor, int id) {
     vertice v = conteudo(novo);
     v->cor = cor;
     v->id = id;
+    ++(g->len);
     return v;
 }
 

@@ -5,7 +5,7 @@
 
 int VerticeID, TamMatriz;
 
-typedef struct celula celula;
+typedef struct celula *celula;
 typedef struct no *no;
 typedef struct lista *lista;
 typedef struct grafo *grafo;

@@ -60,7 +60,7 @@ void zera_counted(tmapa *m);
 void cria_vertices(tmapa *m, grafo g);
 void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v);
 void cria_arestas(tmapa *m, grafo g);
-void pega_vizinhos(tmapa *m, int i, int j, vertice v);
+void pega_vizinhos(tmapa *m, int i, int j, vertice v, celula* x);
 grafo cria_grafos(tmapa *m);
 int proxima_jogada(tmapa m);
 
