@@ -5,6 +5,8 @@
 #include "ia.h"
 #include "utils.h"
 
+// TODO: Destruir os grafos nas iteracoes, ou parar de recria-lo e soh atualiza-lo.
+
 int callCount = 0;
 
 inline int ID(int i, int j) {
@@ -19,7 +21,6 @@ void gera_mapa(tmapa *m, int semente) {
     else
         srand(semente);
 
-//    m->mapa = (int*) malloc(m->nlinhas * m->ncolunas * sizeof(int));
     m->mapa = (celula *) malloc(m->nlinhas * m->ncolunas * sizeof(celula));
 
     for(i = 0; i < m->nlinhas; i++) {
@@ -41,7 +42,6 @@ void carrega_mapa(tmapa *m) {
         puts("Erro lendo colunas.");
     if(!scanf("%d", &(m->ncores)))
         puts("Erro lendo cores.");
-    //m->mapa = (int*) malloc(m->nlinhas * m->ncolunas * sizeof(int));
     m->mapa = (celula *) malloc(m->nlinhas * m->ncolunas * sizeof(struct celula));
     for(i = 0; i < m->nlinhas; i++) {
         for(j = 0; j < m->ncolunas; j++) {
@@ -368,11 +368,67 @@ int guloso(tmapa m, grafo g) {
         }
     }
 
-    printf("Vou tirar %d elementos, da cor %d.\n", best->elems, best->cor);
+    //printf("Vou tirar %d elementos, da cor %d.\n", best->elems, best->cor);
     return best->cor;
 }
 
+int* quantos_faltam(tmapa *m, grafo g, int *ret) {
+    int i;
+
+    for(i=0; i<m->tam; ++i) {
+        ++(ret[m->mapa[i]->cor - FIRST_COLOR]);
+    }
+
+    // Nada na vida eh tao simples. Eu nao posso considerar os elementos do meu vertice (g->lider).
+    ret[g->lider->cor - FIRST_COLOR] -= g->lider->elems;
+
+    return ret;
+}
+
+int jogada_otima(tmapa *m, grafo g) {
+// Eu sei que a jogada eh otima se eu elimino totalmente alguma cor. Se a jogada nao existir, retorna -1.
+// A unica forma de eu eliminar uma cor eh, dada uma cor C, se o somatorio de v->elems para todos os v tal que v eh meu vizinho e v->cor == C for igual ao numero de elementos C na matriz.
+// Em outras palavras:
+// 1- Conto quantos elementos faltam de cada cor, e salvo em 'faltam'.
+// 2- Conto quantos elementos de cada cor eu elimino se eu selecionar essa cor.
+// 3- Comparo se o numero de elementos que eu elimino eh igual ao numero que faltam. Se sim, eh jogada otima. Se nao, deixa quieto.
+    int i, *faltam, *posso_eliminar;
+    no elem;
+    aresta a;
+
+    faltam = (int *) malloc(m->ncores * sizeof(int));
+    posso_eliminar = (int *) malloc(m->ncores * sizeof(int));
+
+    for(i=0; i<m->ncores; ++i) {
+        faltam[i-FIRST_COLOR] = 0;
+        posso_eliminar[i-FIRST_COLOR] = 0;
+    }
+
+    faltam = quantos_faltam(m, g, faltam);
+
+    // Ve se na vizinhanca
+    for(elem = primeiro_no(g->lider->saida); elem; elem = proximo_no(elem)) {
+        a = (aresta) conteudo(elem);
+        posso_eliminar[a->vc->cor - FIRST_COLOR] += a->vc->elems;
+    }
+
+    for(i=0; i<m->ncores; ++i) {
+        //printf("Pra cor %d faltam %d, e posso eliminar %d...\n", i+FIRST_COLOR, faltam[i], posso_eliminar[i]);
+        if(faltam[i] == posso_eliminar[i] && faltam[i] != 0) {
+            //printf("Eliminando...\n");
+            return i+FIRST_COLOR;
+        }
+    }
+
+    return -1;
+}
+
 int proxima_jogada(tmapa m, grafo g) {
+    int r = jogada_otima(&m, g);
+    if(r != -1) {
+        return r;
+    }
+
     // Metodo 2: Guloso
     return guloso(m, g);
 
@@ -416,7 +472,7 @@ int main(int argc, char **argv) {
     while(!acabou(m)) {
         mostra_mapa_cor(&m, 0); // para mostrar sem cores use mostra_mapa(&m);
         cor = proxima_jogada(m, g);
-        printf("A cor selecionada eh %d\n", cor);
+        //printf("A cor selecionada eh %d\n", cor);
         pinta_mapa(&m, cor);
         // Precisa destruir o grafo g!
         g = cria_grafos(&m);

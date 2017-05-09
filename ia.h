@@ -57,6 +57,8 @@ void pega_vizinhos(tmapa *m, int i, int j, vertice v);
 grafo cria_grafos(tmapa *m);
 int jogada_random(tmapa m);
 int guloso(tmapa m, grafo g);
+int* quantos_faltam(tmapa *m, grafo g, int *ret);
+int jogada_otima(tmapa *m, grafo g);
 int proxima_jogada(tmapa m, grafo g);
 
 #endif
