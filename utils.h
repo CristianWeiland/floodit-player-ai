@@ -32,6 +32,7 @@ struct grafo {
     int len;
     char *nome;
 	lista v;
+    vertice lider;
 };
 
 struct vertice {

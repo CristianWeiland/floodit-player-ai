@@ -55,6 +55,8 @@ void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v);
 void cria_arestas(tmapa *m, grafo g);
 void pega_vizinhos(tmapa *m, int i, int j, vertice v);
 grafo cria_grafos(tmapa *m);
-int proxima_jogada(tmapa m);
+int jogada_random(tmapa m);
+int guloso(tmapa m, grafo g);
+int proxima_jogada(tmapa m, grafo g);
 
 #endif

@@ -325,13 +325,59 @@ void pega_vizinhos(tmapa *m, int i, int j, vertice v) {
 grafo cria_grafos(tmapa *m) {
     grafo g = constroi_grafo();
     cria_vertices(m, g);
-    mostra_mapa_cor(m, 0);
     cria_arestas(m, g);
+
+    no elem;
+    vertice v;
+    // Acha o primeiro vertice da lista.
+    for(elem = primeiro_no(g->v); elem; elem = proximo_no(elem)) {
+        v = (vertice) conteudo(elem);
+        if(v->d == 0) {
+            g->lider = v;
+            break;
+        }
+    }
     return g;
 }
 
-int proxima_jogada(tmapa m) {
+int jogada_random(tmapa m) {
     return rand() % m.ncores + 1;
+}
+
+int guloso(tmapa m, grafo g) {
+    int i;
+    no elem;
+    aresta a;
+    vertice best;
+
+    if(!primeiro_no(g->v)) {
+        puts("Erro calculando a proxima jogada.");
+        return -1;
+    }
+
+    best = NULL;
+
+    // Achei o vertice inicial. Agora tenho que ver qual eh o vizinho mais adequado.
+    for(elem = primeiro_no(g->lider->saida); elem; elem = proximo_no(elem)) {
+        a = (aresta) conteudo(elem);
+        if(!best) {
+            best = a->vc;
+        }
+        if(a->vs->elems > best->elems) {
+            best = a->vc;
+        }
+    }
+
+    printf("Vou tirar %d elementos, da cor %d.\n", best->elems, best->cor);
+    return best->cor;
+}
+
+int proxima_jogada(tmapa m, grafo g) {
+    // Metodo 2: Guloso
+    return guloso(m, g);
+
+    // Metodo 1: Random
+    return jogada_random(m);
 }
 
 int main(int argc, char **argv) {
@@ -368,9 +414,12 @@ int main(int argc, char **argv) {
     escreve_grafo(stdout, g);
 
     while(!acabou(m)) {
-        //mostra_mapa_cor(&m, 1); // para mostrar sem cores use mostra_mapa(&m);
-        cor = proxima_jogada(m);
+        mostra_mapa_cor(&m, 0); // para mostrar sem cores use mostra_mapa(&m);
+        cor = proxima_jogada(m, g);
+        printf("A cor selecionada eh %d\n", cor);
         pinta_mapa(&m, cor);
+        // Precisa destruir o grafo g!
+        g = cria_grafos(&m);
         ++Njogadas;
     }
 
