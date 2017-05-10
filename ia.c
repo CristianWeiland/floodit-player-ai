@@ -482,6 +482,20 @@ int proxima_jogada(tmapa m, grafo g) {
     return jogada_random(m);
 }
 
+tmapa* copia_tmapa(tmapa *m) {
+    // Não testado!
+    int i;
+    tmapa *n = (tmapa *) malloc(sizeof(struct tmapa));
+    memcpy(n, m, sizeof(struct tmapa));
+    n->mapa = (celula *) malloc(n->tam * sizeof(celula));
+    // Não dá pra fazer um memcpy só porque é um struct celula**, ou seja, a memória tá toda perdida por aí...
+    for(i=0; i<n->tam; ++i) {
+        n->mapa[i] = (celula) malloc(sizeof(struct celula));
+        memcpy(n->mapa[i], m->mapa[i], sizeof(struct celula));
+    }
+    return n;
+}
+
 void destroi_tmapa(tmapa m, int destruir_vertices) {
     int i;
     for(i=0; i<m.tam; ++i) {
@@ -491,6 +505,36 @@ void destroi_tmapa(tmapa m, int destruir_vertices) {
         free(m.mapa[i]);
     }
     free(m.mapa);
+}
+
+grafo atualiza_grafo(grafo g, int cor) {
+    no elem, child;
+    vertice w;
+    aresta a;
+    int i;
+    for(elem = primeiro_no(g->first->saida); elem; elem = proximo_no(elem)) {
+        w = (vertice) conteudo(elem);
+        // Só quero vizinhos da mesma cor, foram os que eu pintei.
+        if(w->cor != cor)
+            continue;
+        // Adiciona *i e *j de w em first.
+        for(i=0; i<w->elems; ++i) {
+            g->first->i[g->first->elems + i] = w->i[i];
+            g->first->j[g->first->elems + i] = w->j[i];
+        }
+        g->first->elems += w->elems;
+        /* Acho que aqui eu arrumei os vertices. Provavelmente se eu chamar o cria_arestas() funciona. Pensar nisso!
+        for(child = primeiro_no(w->saida); child; child = proximo_no(child)) {
+            a = (aresta) conteudo(child);
+            a->vs = g->first;
+        }
+        */
+        destroi_lista(w->saida, NULL);
+        destroi_lista(w->entrada, destroi_aresta);
+        destroi_vertice(w);
+    }
+
+    return g;
 }
 
 int main(int argc, char **argv) {
