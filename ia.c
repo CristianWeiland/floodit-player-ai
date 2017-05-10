@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "ia.h"
 #include "utils.h"
 
@@ -22,10 +23,18 @@ void gera_mapa(tmapa *m, int semente) {
         srand(semente);
 
     m->mapa = (celula *) malloc(m->nlinhas * m->ncolunas * sizeof(celula));
+    if(!m->mapa) {
+        puts("(jogada_otima) Erro de malloc.");
+        exit(1);
+    }
 
     for(i = 0; i < m->nlinhas; i++) {
         for(j = 0; j < m->ncolunas; j++) {
             m->mapa[ID(i,j)] = (celula) malloc(sizeof(struct celula));
+            if(!m->mapa[ID(i,j)]) {
+                puts("(jogada_otima) Erro de malloc.");
+                exit(1);
+            }
             m->mapa[ID(i,j)]->cor = 1 + rand() % m->ncores;
             m->mapa[ID(i,j)]->counted = 0;
             m->mapa[ID(i,j)]->v = NULL;
@@ -43,8 +52,19 @@ void carrega_mapa(tmapa *m) {
     if(!scanf("%d", &(m->ncores)))
         puts("Erro lendo cores.");
     m->mapa = (celula *) malloc(m->nlinhas * m->ncolunas * sizeof(struct celula));
+    if(!m->mapa) {
+        puts("(jogada_otima) Erro de malloc.");
+        exit(1);
+    }
     for(i = 0; i < m->nlinhas; i++) {
         for(j = 0; j < m->ncolunas; j++) {
+            m->mapa[ID(i,j)] = (celula) malloc(sizeof(struct celula));
+            if(!m->mapa[ID(i,j)]) {
+                puts("(jogada_otima) Erro de malloc.");
+                exit(1);
+            }
+            m->mapa[ID(i,j)]->counted = 0;
+            m->mapa[ID(i,j)]->v = NULL;
             //if(!scanf("%d", &(m->mapa[ID(i,j)])))
             if(!scanf("%d", &(m->mapa[ID(i,j)]->cor)))
                 puts("Erro lendo cor.");
@@ -204,12 +224,15 @@ void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v) {
 
 void cria_arestas(tmapa *m, grafo g) {
     no elem;
-    int i, j, head, tail = 1; // Head vai indicar qual elemento eu devo olhar em l, pois nao vou remove-los, apenas ignora-los.
+    int i, j, repetido, head, tail = 1; // Head vai indicar qual elemento eu devo olhar em l, pois nao vou remove-los, apenas ignora-los.
                               // Tail serve pra saber onde eu devo adicionar o proximo elemento e quando parar o laco.
-    vertice l[g->len*g->len], v;
+    //vertice l[g->len*g->len*g->len], v;
+    vertice *l, v;
     aresta a;
 
-    //printf("Alocando %d bytes..", g->len * g->len * sizeof(vertice));
+    //printf("Alocando %d bytes... Len = %d\n", g->len * g->len * g->len * sizeof(vertice), g->len);
+    l = (vertice *) malloc(g->len * g->len * g->len * sizeof(vertice));
+
 
     /*
         Porque nao allocar soh g->len pra l? A resposta eh porque as vezes eu adiciono o mesmo vertice mais do que uma vez.
@@ -237,10 +260,21 @@ void cria_arestas(tmapa *m, grafo g) {
         for(elem = primeiro_no(v->saida); elem; elem = proximo_no(elem)) {
             // Acrescenta mais elementos na lista pra continuar esse laco.
             a = (aresta) conteudo(elem);
-            l[tail] = a->vc;
-            ++tail;
+            repetido = 0;
+            for(j=head; j<tail; ++j) {
+                if(a->vc == l[j]) {
+                    repetido = 1;
+                }
+            }
+            if(!repetido) {
+                l[tail] = a->vc;
+                ++tail;
+            }
         }
     }
+    //printf("Usei %d elementos.\n", tail);
+
+    free(l);
 }
 
 void pega_vizinhos(tmapa *m, int i, int j, vertice v) {
@@ -285,6 +319,7 @@ void pega_vizinhos(tmapa *m, int i, int j, vertice v) {
     // Caso 4:
     // Obs: Perceba que aqui nao tem return;, porque eu quero executar os passos do caso 3!
     if( destDist > novaDistancia ) {
+        printf("Acho acho ololoooo\n\n");
         no elem;
         aresta a;
         // Preciso remover as arestas ja existentes. Pra isso tenho dois passos:
@@ -400,6 +435,10 @@ int jogada_otima(tmapa *m, grafo g) {
 
     faltam = (int *) malloc(m->ncores * sizeof(int));
     posso_eliminar = (int *) malloc(m->ncores * sizeof(int));
+    if(!faltam || !posso_eliminar) {
+        puts("(jogada_otima) Erro de malloc.");
+        exit(1);
+    }
 
     for(i=0; i<m->ncores; ++i) {
         faltam[i] = 0;
@@ -485,10 +524,11 @@ int main(int argc, char **argv) {
 
     g = cria_grafos(&m);
 
+    mostra_mapa_cor(&m, 0);
     escreve_grafo(stdout, g);
 
     while(!acabou(m)) {
-        mostra_mapa_cor(&m, 0); // para mostrar sem cores use mostra_mapa(&m);
+        //mostra_mapa_cor(&m, 0); // para mostrar sem cores use mostra_mapa(&m);
         cor = proxima_jogada(m, g);
         //printf("A cor selecionada eh %d\n", cor);
         pinta_mapa(&m, cor);

@@ -251,6 +251,16 @@ aresta insere_aresta(vertice saida, vertice chegada, long int peso) {
     return a;
 }
 
+int menor_aresta(aresta *ar, int a, int b) {
+    int i, menor = a;
+    for(i=a+1; i<b; ++i) {
+        if(ar[i]->vs->id < ar[menor]->vs->id) {
+            menor = i;
+        }
+    }
+    return menor;
+}
+
 grafo escreve_grafo(FILE *output, grafo g) {
     if(g == NULL) {
         puts("Grafo nulo. Abortando...");
@@ -271,6 +281,7 @@ grafo escreve_grafo(FILE *output, grafo g) {
     fprintf(output,"\n");
 
     // Imprime todas as arestas, percorrendo todas as listas de entrada dos vertices
+/*
     for(elem = primeiro_no(g->v); elem; elem = proximo_no(elem)) {
         v = (vertice) conteudo(elem);
         for(childElem = primeiro_no(v->entrada); childElem; childElem = proximo_no(childElem)) {
@@ -281,6 +292,29 @@ grafo escreve_grafo(FILE *output, grafo g) {
             fprintf(output,"\n");
         }
     }
+*/
+    /* Imprime Ordenado */
+    aresta *ar;
+    ar = (aresta *) malloc(100 * sizeof(aresta));
+    int i=0, len, aux;
+    for(elem = primeiro_no(g->v); elem; elem = proximo_no(elem)) {
+        v = (vertice) conteudo(elem);
+        for(childElem = primeiro_no(v->entrada); childElem; childElem = proximo_no(childElem)) {
+            a = (aresta) conteudo(childElem);
+            ar[i] = a;
+            ++i;
+        }
+    }
+    len = i;
+    for(i=0; i<len; ++i) {
+        aux = menor_aresta(ar, i, len);
+        a = ar[i];
+        ar[i] = ar[aux];
+        ar[aux] = a;
+        fprintf(output,"   \"%d\" -- \"%d\"\n", ar[i]->vs->id, ar[i]->vc->id);
+    }
+    free(ar);
+    /**/
 
     fprintf(output,"}\n");
 
