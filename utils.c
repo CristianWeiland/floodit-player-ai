@@ -180,6 +180,37 @@ int destroi_aresta(void* param) {
     return 1;
 }
 
+int destroi_vertice(void* param) { // Soh funciona pra ser chamado dentro de destroi_grafo.
+    vertice v = (vertice) param;
+    if(v == NULL) {
+        return 1; // Jah foi destruido
+    }
+    if(!destroi_lista(v->saida, destroi_aresta)) {
+        perror("(destroi_vertice) Erro ao destruir lista.");
+        return 0;
+    }
+    if(!destroi_lista(v->entrada, NULL)) {
+        perror("(destroi_vertice) Erro ao destruir lista.");
+        return 0;
+    }
+    free(v->i);
+    free(v->j);
+    free(v);
+    return 1;
+}
+
+int destroi_grafo(void* param) {
+    grafo g = (grafo) param;
+    if(g == NULL)
+        return 1;
+    if(!destroi_lista(g->v, destroi_vertice)) {
+        perror("(destroi_grafo) Erro ao destruir grafo.");
+        return 0;
+    }
+    free(g);
+    return 1;
+}
+
 vertice insere_vertice(grafo g, int cor, int id) {
     void* content = constroi_vertice();
     no novo = insere_lista(content, g->v);
@@ -218,30 +249,6 @@ aresta insere_aresta(vertice saida, vertice chegada, long int peso) {
         return NULL;
     }
     return a;
-}
-
-int destroi_vertice(void* param) { // Soh funciona pra ser chamado dentro de destroi_grafo.
-    vertice v = (vertice) param;
-    if(v == NULL) {
-        return 1; // Jah foi destruido
-    }
-    if(!destroi_lista(v->saida, destroi_aresta)) {
-        perror("(destroi_vertice) Erro ao destruir lista.");
-        return 0;
-    }
-    return 1;
-}
-
-int destroi_grafo(void* param) {
-    grafo g = (grafo) param;
-    if(g == NULL)
-        return 1;
-    if(!destroi_lista(g->v, destroi_vertice)) {
-        perror("(destroi_grafo) Erro ao destruir grafo.");
-        return 0;
-    }
-    free(g);
-    return 1;
 }
 
 grafo escreve_grafo(FILE *output, grafo g) {

@@ -206,8 +206,10 @@ void cria_arestas(tmapa *m, grafo g) {
     no elem;
     int i, j, head, tail = 1; // Head vai indicar qual elemento eu devo olhar em l, pois nao vou remove-los, apenas ignora-los.
                               // Tail serve pra saber onde eu devo adicionar o proximo elemento e quando parar o laco.
-    vertice l[5*g->len], v;
+    vertice l[g->len*g->len], v;
     aresta a;
+
+    //printf("Alocando %d bytes..", g->len * g->len * sizeof(vertice));
 
     /*
         Porque nao allocar soh g->len pra l? A resposta eh porque as vezes eu adiciono o mesmo vertice mais do que uma vez.
@@ -400,8 +402,8 @@ int jogada_otima(tmapa *m, grafo g) {
     posso_eliminar = (int *) malloc(m->ncores * sizeof(int));
 
     for(i=0; i<m->ncores; ++i) {
-        faltam[i-FIRST_COLOR] = 0;
-        posso_eliminar[i-FIRST_COLOR] = 0;
+        faltam[i] = 0;
+        posso_eliminar[i] = 0;
     }
 
     faltam = quantos_faltam(m, g, faltam);
@@ -416,10 +418,15 @@ int jogada_otima(tmapa *m, grafo g) {
         //printf("Pra cor %d faltam %d, e posso eliminar %d...\n", i+FIRST_COLOR, faltam[i], posso_eliminar[i]);
         if(faltam[i] == posso_eliminar[i] && faltam[i] != 0) {
             //printf("Eliminando...\n");
+            free(faltam);
+            free(posso_eliminar);
             return i+FIRST_COLOR;
         }
     }
 
+
+    free(faltam);
+    free(posso_eliminar);
     return -1;
 }
 
@@ -434,6 +441,17 @@ int proxima_jogada(tmapa m, grafo g) {
 
     // Metodo 1: Random
     return jogada_random(m);
+}
+
+void destroi_tmapa(tmapa m, int destruir_vertices) {
+    int i;
+    for(i=0; i<m.tam; ++i) {
+        if(destruir_vertices && m.mapa[i]->v) {
+            free(m.mapa[i]->v);
+        }
+        free(m.mapa[i]);
+    }
+    free(m.mapa);
 }
 
 int main(int argc, char **argv) {
@@ -475,6 +493,7 @@ int main(int argc, char **argv) {
         //printf("A cor selecionada eh %d\n", cor);
         pinta_mapa(&m, cor);
         // Precisa destruir o grafo g!
+        destroi_grafo(g);
         g = cria_grafos(&m);
         ++Njogadas;
     }
@@ -482,6 +501,9 @@ int main(int argc, char **argv) {
     //mostra_mapa_cor(&m, 1); // para mostrar sem cores use mostra_mapa(&m);
 
     printf("Parabens! Voce venceu em %d jogadas!\n", Njogadas);
+
+    destroi_grafo(g);
+    destroi_tmapa(m, 0);
 
     return 0;
 }
