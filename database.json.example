@@ -1,0 +1,8 @@
+{
+    "seed": {
+        "cores": 5
+        , "linhas": 5
+        , "colunas": 5
+        , "jogadas": 3
+    }
+}

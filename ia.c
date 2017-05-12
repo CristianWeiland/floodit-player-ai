@@ -5,174 +5,11 @@
 #include <math.h>
 #include "ia.h"
 #include "utils.h"
+#include "mapa.h"
 
 // TODO: Destruir os grafos nas iteracoes, ou parar de recria-lo e soh atualiza-lo.
 
 int callCount = 0;
-
-inline int ID(int i, int j) {
-    return i * Colunas + j;
-}
-
-void gera_mapa(tmapa *m, int semente) {
-    int i, j;
-
-    if(semente < 0)
-        srand(time(NULL));
-    else
-        srand(semente);
-
-    m->mapa = (celula *) malloc(m->nlinhas * m->ncolunas * sizeof(celula));
-    if(!m->mapa) {
-        puts("(jogada_otima) Erro de malloc.");
-        exit(1);
-    }
-
-    for(i = 0; i < m->nlinhas; i++) {
-        for(j = 0; j < m->ncolunas; j++) {
-            m->mapa[ID(i,j)] = (celula) malloc(sizeof(struct celula));
-            if(!m->mapa[ID(i,j)]) {
-                puts("(jogada_otima) Erro de malloc.");
-                exit(1);
-            }
-            m->mapa[ID(i,j)]->cor = 1 + rand() % m->ncores;
-            m->mapa[ID(i,j)]->counted = 0;
-            m->mapa[ID(i,j)]->v = NULL;
-        }
-    }
-}
-
-void carrega_mapa(tmapa *m) {
-    int i, j;
-
-    if(!scanf("%d", &(m->nlinhas)))
-        puts("Erro lendo linhas.");
-    if(!scanf("%d", &(m->ncolunas)))
-        puts("Erro lendo colunas.");
-    if(!scanf("%d", &(m->ncores)))
-        puts("Erro lendo cores.");
-    m->mapa = (celula *) malloc(m->nlinhas * m->ncolunas * sizeof(struct celula));
-    if(!m->mapa) {
-        puts("(jogada_otima) Erro de malloc.");
-        exit(1);
-    }
-    for(i = 0; i < m->nlinhas; i++) {
-        for(j = 0; j < m->ncolunas; j++) {
-            m->mapa[ID(i,j)] = (celula) malloc(sizeof(struct celula));
-            if(!m->mapa[ID(i,j)]) {
-                puts("(jogada_otima) Erro de malloc.");
-                exit(1);
-            }
-            m->mapa[ID(i,j)]->counted = 0;
-            m->mapa[ID(i,j)]->v = NULL;
-            //if(!scanf("%d", &(m->mapa[ID(i,j)])))
-            if(!scanf("%d", &(m->mapa[ID(i,j)]->cor)))
-                puts("Erro lendo cor.");
-        }
-    }
-}
-
-void mostra_mapa(tmapa *m) {
-    int i, j;
-
-    clear();
-
-    printf("Linhas: %d Colunas: %d Cores: %d\n\n", m->nlinhas, m->ncolunas, m->ncores);
-    for(i = 0; i < m->nlinhas; i++) {
-        for(j = 0; j < m->ncolunas; j++)
-            if(m->ncores > 10)
-	printf("%02d ", m->mapa[ID(i,j)]->cor);
-            else
-	printf("%d ", m->mapa[ID(i,j)]->cor);
-        printf("\n");
-    }
-}
-
-void mostra_mapa_cor(tmapa *m, int shouldClear) {
-    int i, j;
-    char* cor_ansi[] = { "\x1b[0m",
-		             "\x1b[31m", "\x1b[32m", "\x1b[33m",
-		             "\x1b[34m", "\x1b[35m", "\x1b[36m",
-		             "\x1b[37m", "\x1b[30;1m", "\x1b[31;1m",
-		             "\x1b[32;1m", "\x1b[33;1m", "\x1b[34;1m",
-		             "\x1b[35;1m", "\x1b[36;1m", "\x1b[37;1m" };
-
-    if(shouldClear)
-        clear();
-
-    if(m->ncores > 15) {
-        mostra_mapa(m);
-        return;
-    }
-    printf("Linhas: %d Colunas: %d Cores: %d\n   ", m->nlinhas, m->ncolunas, m->ncores);
-    for(i=0; i<m->ncolunas; ++i) {
-        printf("%d ", i);
-    }
-    printf("\n");
-    for(i = 0; i < m->nlinhas; i++) {
-        printf("%d: ", i);
-        for(j = 0; j < m->ncolunas; j++)
-            if(m->ncores > 10)
-	printf("%s%02d%s ", cor_ansi[m->mapa[ID(i,j)]->cor], m->mapa[ID(i,j)]->cor, cor_ansi[0]);
-            else
-	printf("%s%d%s ", cor_ansi[m->mapa[ID(i,j)]->cor], m->mapa[ID(i,j)]->cor, cor_ansi[0]);
-        printf("\n");
-    }
-    puts("");
-}
-
-void pinta(tmapa *m, int l, int c, int fundo, int cor) {
-    m->mapa[ID(l,c)]->cor = cor;
-    if(l < m->nlinhas - 1 && m->mapa[ID(l+1,c)]->cor == fundo)
-        pinta(m, l+1, c, fundo, cor);
-    if(c < m->ncolunas - 1 && m->mapa[ID(l,c+1)]->cor == fundo)
-        pinta(m, l, c+1, fundo, cor);
-    if(l > 0 && m->mapa[ID(l-1,c)]->cor == fundo)
-        pinta(m, l-1, c, fundo, cor);
-    if(c > 0 && m->mapa[ID(l,c-1)]->cor == fundo)
-        pinta(m, l, c-1, fundo, cor);
-}
-
-void pinta_mapa(tmapa *m, int cor) {
-    if(cor == m->mapa[ID(0,0)]->cor)
-        return;
-    pinta(m, 0, 0, m->mapa[ID(0,0)]->cor, cor);
-}
-
-int acabou(tmapa m) {
-    int i, cor = m.mapa[0]->cor;
-    for(i=1; i<m.tam; ++i) {
-        if(m.mapa[i]->cor != cor) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-inline int borda(int i, int j) {
-    if(i < 0 || j < 0 || i >= Linhas || j >= Colunas) {
-        return 1;
-    }
-    return 0;
-}
-
-void teste_lista() {
-    lista l = constroi_lista();
-    int *x;
-    x = malloc(sizeof(int));
-    *x = 12;
-    insere_lista((void*) x, l);
-
-    x = malloc(sizeof(int));
-    *x = 22;
-    insere_lista((void*) x, l);
-
-    no elem;
-    for(elem = l->primeiro; elem; elem = elem->proximo) {
-        x = (int*) elem->conteudo;
-        printf("Valor é %d\n", *x);
-    }
-}
 
 inline void zera_counted(tmapa *m) {
     int i;
@@ -463,17 +300,44 @@ int jogada_otima(tmapa *m, grafo g) {
         }
     }
 
-
     free(faltam);
     free(posso_eliminar);
     return -1;
 }
 
 int proxima_jogada(tmapa m, grafo g) {
+    static int i = -1;
     int r = jogada_otima(&m, g);
     if(r != -1) {
         return r;
     }
+
+    // Metodo 3: Começa indo até o bloco mais sudoeste, depois faz um guloso.
+/*
+    if(i == -1) {
+        static int x1, x2, y1, y2, *jogadas;
+        bloco_baixo_direita(&x1, &y1, &x2, &y2);
+        i = menor_caminho(m, g, mais_proximo(m, x1, y1, x2, y2), jogadas);
+    } else if(i == v->d-1) {
+        i = -2;
+    } else if(i >= 0) {
+        ++i;
+        return jogadas[i-1];
+    }
+*/
+/*
+    if(i == -1) {
+        static int x1, x2, y1, y2, *jogadas;
+        bloco_baixo_direita(&x1, &y1, &x2, &y2);
+        i = menor_caminho(m, g, mais_proximo(m, x1, y1, x2, y2), jogadas);
+        while(i < (v->d-2) ) {
+            pinta_mapa(&m, jogadas[i++]);
+            ++Njogadas;
+        }
+        i = -2;
+        return jogadas[v->d-1];
+    }
+*/
 
     // Metodo 2: Guloso
     return guloso(m, g);
@@ -482,59 +346,51 @@ int proxima_jogada(tmapa m, grafo g) {
     return jogada_random(m);
 }
 
-tmapa* copia_tmapa(tmapa *m) {
-    // Não testado!
-    int i;
-    tmapa *n = (tmapa *) malloc(sizeof(struct tmapa));
-    memcpy(n, m, sizeof(struct tmapa));
-    n->mapa = (celula *) malloc(n->tam * sizeof(celula));
-    // Não dá pra fazer um memcpy só porque é um struct celula**, ou seja, a memória tá toda perdida por aí...
-    for(i=0; i<n->tam; ++i) {
-        n->mapa[i] = (celula) malloc(sizeof(struct celula));
-        memcpy(n->mapa[i], m->mapa[i], sizeof(struct celula));
-    }
-    return n;
-}
-
-void destroi_tmapa(tmapa m, int destruir_vertices) {
-    int i;
-    for(i=0; i<m.tam; ++i) {
-        if(destruir_vertices && m.mapa[i]->v) {
-            free(m.mapa[i]->v);
+vertice mais_proximo(tmapa *m, int x1, int y1, int x2, int y2) {
+    // Procura o vértice mais próximo dentro do quadrado formado pelos pontos p1 e p2 (coordenadas x1, y1 e x2, y2, respectivamente)
+    // Obs: x1 tem que ser menor que x2 e y1 menor que y2!
+    int i, j;
+    vertice menor = m->mapa[ID(i,j)]->v;
+    for(i=x1; i<x2; ++i) {
+        for(j=y1; j<y2; ++j) {
+            if(m->mapa[ID(i,j)]->v->d < menor->d) {
+                menor = m->mapa[ID(i,j)]->v;
+            }
         }
-        free(m.mapa[i]);
     }
-    free(m.mapa);
+    return menor;
 }
 
-grafo atualiza_grafo(grafo g, int cor) {
-    no elem, child;
+void bloco_baixo_direita(int *x1, int *y1, int *x2, int *y2) {
+    *x1 = (int) (Linhas * 3) / 4;
+    *y1 = (int) (Colunas * 3) / 4;
+    *x2 = Linhas - 1;
+    *y2 = Colunas - 1;
+}
+
+int menor_caminho(tmapa *m, grafo g, vertice v, int *jogadas) {
+    // Cria um vetor de v->d jogadas, que fazem vc sair de g->lider e chegar em v.
+    // Devolve a posição da primeira jogada (deveria ser 0). O vetor acab em v->d;
+
+    int i;
     vertice w;
     aresta a;
-    int i;
-    for(elem = primeiro_no(g->first->saida); elem; elem = proximo_no(elem)) {
-        w = (vertice) conteudo(elem);
-        // Só quero vizinhos da mesma cor, foram os que eu pintei.
-        if(w->cor != cor)
-            continue;
-        // Adiciona *i e *j de w em first.
-        for(i=0; i<w->elems; ++i) {
-            g->first->i[g->first->elems + i] = w->i[i];
-            g->first->j[g->first->elems + i] = w->j[i];
-        }
-        g->first->elems += w->elems;
-        /* Acho que aqui eu arrumei os vertices. Provavelmente se eu chamar o cria_arestas() funciona. Pensar nisso!
-        for(child = primeiro_no(w->saida); child; child = proximo_no(child)) {
-            a = (aresta) conteudo(child);
-            a->vs = g->first;
-        }
-        */
-        destroi_lista(w->saida, NULL);
-        destroi_lista(w->entrada, destroi_aresta);
-        destroi_vertice(w);
+
+    jogadas = (int *) malloc(v->d * sizeof(int));
+
+    for(i = v->d-1, w = v; w != g->lider; --i) {
+        // Adiciona a cor do vertice que eu quero pintar.
+        jogadas[i] = w->cor;
+
+        // Faz w apontar pro vertice anterior.
+        a = (aresta) conteudo(primeiro_no(v->entrada));
+        w = a->vs;
     }
 
-    return g;
+    if(i != 0) {
+        printf("Vetor de jogadas não começa no 0, começa em %d\n", i);
+    }
+    return i;
 }
 
 int main(int argc, char **argv) {
@@ -590,4 +446,35 @@ int main(int argc, char **argv) {
     destroi_tmapa(m, 0);
 
     return 0;
+}
+
+// Funções não prontas
+grafo atualiza_grafo(grafo g, int cor) {
+    no elem, child;
+    vertice w;
+    aresta a;
+    int i;
+    for(elem = primeiro_no(g->lider->saida); elem; elem = proximo_no(elem)) {
+        w = (vertice) conteudo(elem);
+        // Só quero vizinhos da mesma cor, foram os que eu pintei.
+        if(w->cor != cor)
+            continue;
+        // Adiciona *i e *j de w em lider.
+        for(i=0; i<w->elems; ++i) {
+            g->lider->i[g->lider->elems + i] = w->i[i];
+            g->lider->j[g->lider->elems + i] = w->j[i];
+        }
+        g->lider->elems += w->elems;
+        /* Acho que aqui eu arrumei os vertices. Provavelmente se eu chamar o cria_arestas() funciona. Pensar nisso!
+        for(child = primeiro_no(w->saida); child; child = proximo_no(child)) {
+            a = (aresta) conteudo(child);
+            a->vs = g->lider;
+        }
+        */
+        destroi_lista(w->saida, NULL);
+        destroi_lista(w->entrada, destroi_aresta);
+        destroi_vertice(w);
+    }
+
+    return g;
 }

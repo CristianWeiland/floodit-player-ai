@@ -31,18 +31,18 @@ struct lista {
 struct grafo {
     int len;
     char *nome;
-	lista v;
+    lista v;
     vertice lider;
 };
 
 struct vertice {
     int *i, *j, cor, id, elems, d;
-	lista saida, entrada;
+    lista saida, entrada;
 };
 
 struct aresta {
-	vertice vs, vc;
-	long int peso;
+    vertice vs, vc;
+    long int peso;
 };
 
 unsigned int tamanho_lista(lista l);
@@ -311,10 +311,10 @@ unsigned int grau(vertice v, int direcao, grafo g);
 // Int direcao = 1 se o grafo for direcionado, 0 caso contrario.
 // Int ponderado = 1 se o grafo possui peso nas arestas, 0 caso contrario.
 struct grafo {
-	lista v;
-	char* nome;
-	int direcao;
-	int ponderado;
+    lista v;
+    char* nome;
+    int direcao;
+    int ponderado;
 };
 
 //------------------------------------------------------------------------------
@@ -326,8 +326,8 @@ struct grafo {
 // Por exemplo, uma aresta a--b aparece na lista de saida do vertice a e na lista de
 // entrada do vertice b..
 struct vertice {
-	char* nome;
-	lista saida, entrada;
+    char* nome;
+    lista saida, entrada;
     int *rotulo;
     int estado, atributo;
 };
@@ -342,8 +342,8 @@ struct vertice {
 // Peso = peso da aresta (0 é o default).
 typedef struct aresta *aresta;
 struct aresta {
-	vertice vs, vc;
-	long int peso;
+    vertice vs, vc;
+    long int peso;
 };
 
 //------------------------------------------------------------------------------
@@ -352,8 +352,8 @@ struct aresta {
 // em alguma funcao, para tratar arestas duplicadas.
 typedef struct par *par;
 struct par {
-	char *head;
-	char *tail;
+    char *head;
+    char *tail;
 };
 //------------------------------------------------------------------------------
 // Alloca memoria para um grafo

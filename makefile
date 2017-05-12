@@ -4,7 +4,7 @@ CFLAGS=-std=c99
 
 all: ia
 
-ia: ia.c utils.o
+ia: ia.c mapa.o utils.o
 	$(CC) -g -o $@ $^
 
 clean :
