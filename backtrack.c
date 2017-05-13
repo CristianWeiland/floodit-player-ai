@@ -31,7 +31,7 @@ void gera_mapa(tmapa *m, int semente) {
             m->mapa[i][j] = 1 + rand() % m->ncores;
     }
 }
-
+/*
 void carrega_mapa(tmapa *m) {
     int i, j;
 
@@ -45,7 +45,7 @@ void carrega_mapa(tmapa *m) {
             scanf("%d", &(m->mapa[i][j]));
     }
 }
-
+*/
 void mostra_mapa(tmapa *m) {
     int i, j;
 
@@ -163,11 +163,15 @@ int backtrack(tmapa *m) {
         }
 
         if(acabou(*n)) {
-            printf("Seed %d, njogadas: %d\n", Seed, njogadas);
+            //printf("Seed %d, njogadas: %d\n", Seed, njogadas);
+            //printf("%d\n", Seed);
+            printf("%d\n", njogadas);
+            /*
             for(i=0; i<njogadas; ++i) {
-                printf("%d ", jogadas[i]);
+                printf("%d\n", jogadas[i]);
             }
-            printf("\n");
+            */
+            //printf("\n");
             exit(0);
         }
 
@@ -203,16 +207,16 @@ int main(int argc, char **argv) {
         semente = -1;
     Seed = semente;
     gera_mapa(&m, semente);
-    mostra_mapa_cor(&m);
+    //mostra_mapa_cor(&m);
 
     backtrack(&m);
-
+/*
     scanf("%d", &cor);
     while(cor > 0 && cor <= m.ncores) {
         pinta_mapa(&m, cor);
         mostra_mapa_cor(&m); // para mostrar sem cores use mostra_mapa(&m);
         scanf("%d", &cor);
     }
-
+*/
     return 0;
 }
