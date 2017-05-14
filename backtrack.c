@@ -25,27 +25,21 @@ void gera_mapa(tmapa *m, int semente) {
     else
         srand(semente);
     m->mapa = (int**) malloc(m->nlinhas * sizeof(int*));
+    if(!m->mapa) {
+        printf("(gera_mapa) Erro mallocando mapa.\n");
+        exit(1);
+    }
     for(i = 0; i < m->nlinhas; i++) {
         m->mapa[i] = (int*) malloc(m->ncolunas * sizeof(int));
+        if(!m->mapa[i]) {
+            printf("(gera_mapa) Erro mallocando mapa[i].\n");
+            exit(1);
+        }
         for(j = 0; j < m->ncolunas; j++)
             m->mapa[i][j] = 1 + rand() % m->ncores;
     }
 }
-/*
-void carrega_mapa(tmapa *m) {
-    int i, j;
 
-    scanf("%d", &(m->nlinhas));
-    scanf("%d", &(m->ncolunas));
-    scanf("%d", &(m->ncores));
-    m->mapa = (int**) malloc(m->nlinhas * sizeof(int*));
-    for(i = 0; i < m->nlinhas; i++) {
-        m->mapa[i] = (int*) malloc(m->ncolunas * sizeof(int));
-        for(j = 0; j < m->ncolunas; j++)
-            scanf("%d", &(m->mapa[i][j]));
-    }
-}
-*/
 void mostra_mapa(tmapa *m) {
     int i, j;
 
@@ -105,17 +99,38 @@ void pinta_mapa(tmapa *m, int cor) {
 tmapa* copia_tmapa(tmapa *m) {
     int i, j;
     tmapa *n = (tmapa *) malloc(sizeof(struct tmapa));
+    if(!n) {
+        puts("(copia_tmapa) Erro allocando n.");
+        exit(1);
+    }
     n->ncores = m->ncores;
     n->nlinhas = m->nlinhas;
     n->ncolunas = m->ncolunas;
     n->mapa = (int **) malloc(n->nlinhas * sizeof(int *));
+    if(!n->mapa) {
+        puts("(copia_tmapa) Erro allocando n->mapa.");
+        exit(1);
+    }
     for(i=0; i<n->nlinhas; ++i) {
         n->mapa[i] = (int *) malloc(n->ncolunas * sizeof(int));
+        if(!n->mapa[i]) {
+            puts("(copia_tmapa) Erro allocando n->mapa[i].");
+            exit(1);
+        }
         for(j=0; j<n->ncolunas; ++j) {
             n->mapa[i][j] = m->mapa[i][j];
         }
     }
     return n;
+}
+
+void destroi_tmapa(tmapa *n) {
+    int i;
+    for(i=0; i<n->nlinhas; ++i) {
+        free(n->mapa[i]);
+    }
+    free(n->mapa);
+    free(n);
 }
 
 int acabou(tmapa m) {
@@ -183,7 +198,7 @@ int backtrack(tmapa *m) {
             fila[Tail+1] = -1;
             Tail += 2;
         }
-        free(n);
+        destroi_tmapa(n);
     }
 }
 
@@ -210,13 +225,5 @@ int main(int argc, char **argv) {
     //mostra_mapa_cor(&m);
 
     backtrack(&m);
-/*
-    scanf("%d", &cor);
-    while(cor > 0 && cor <= m.ncores) {
-        pinta_mapa(&m, cor);
-        mostra_mapa_cor(&m); // para mostrar sem cores use mostra_mapa(&m);
-        scanf("%d", &cor);
-    }
-*/
     return 0;
 }
