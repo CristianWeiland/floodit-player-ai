@@ -31,7 +31,8 @@ else:
 max_seed = 9999999
 
 for x in range(0, ntestes):
-    seed = str(randint(1,max_seed))
+    #seed = str(randint(1,max_seed))
+    seed = x
     if seed not in data:
         ret = run_command(seed)
         seed = ret[0]

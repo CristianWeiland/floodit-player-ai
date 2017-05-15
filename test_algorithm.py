@@ -26,6 +26,7 @@ with open(arquivo) as data_file:
 worse = 0
 equal = 0
 better = 0
+total = 0
 
 for key in data:
     value = data[key]
@@ -39,6 +40,8 @@ for key in data:
     output = result.stdout.decode('utf-8')
     result = int(output)
 
+    total += result
+
     if(result < njogadas):
         better += 1
     elif(result == njogadas):
@@ -48,3 +51,4 @@ for key in data:
 
 print('From ' + str(better+equal+worse) + ' tests:')
 print(str(better) + ' were better, ' + str(equal) + ' were equal and ' + str(worse) + ' were worse.')
+print('You took the total amount of ' + str(total) + ' moves. Average: ' + str(total/(worse+better+equal)) )
