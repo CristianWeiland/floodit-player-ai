@@ -31,5 +31,7 @@ void pinta(tmapa *m, int l, int c, int fundo, int cor);
 void pinta_mapa(tmapa *m, int cor);
 int acabou(tmapa m);
 int borda(int i, int j);
+void zera_counted(tmapa *m);
+void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status);
 
 #endif

@@ -320,35 +320,3 @@ grafo escreve_grafo(FILE *output, grafo g) {
 
     return g;
 }
-
-
-/* Isso aqui eh algum xunxo que eu fiz no T1. Vou deixar comentado.
-int remove_no(struct lista *l, struct no *rno, int destroi(void *)) {
-    no atual, anterior;
-    void *content = rno->conteudo;
-    // Percorre todas as arestas
-    atual = l->primeiro;
-    if(destroi != NULL)
-        puts("Só evitando warning de unused parameter");
-    if(atual == NULL)
-        return 1;
-    if(content == atual->conteudo) {
-        l->primeiro = atual->proximo;
-        return 1;
-    }
-    for(; atual; ) {
-        anterior = atual;
-        atual = atual->proximo;
-        if(atual == NULL) {
-            perror("(remove_duplicada) Nao foi possivel encontrar a aresta duplicada.");
-            return 1;
-        }
-        if(content == atual->conteudo) {
-            // Achei a aresta anterior à que quero remover -> remove aresta da lista
-            anterior->proximo = proximo_no(atual);
-            return 1;
-        }
-    }
-    return 0;
-}
-*/

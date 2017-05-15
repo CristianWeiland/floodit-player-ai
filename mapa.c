@@ -177,3 +177,26 @@ inline int borda(int i, int j) {
     }
     return 0;
 }
+
+inline void zera_counted(tmapa *m) {
+    int i;
+    for(i=0; i<m->tam; ++i) {
+        m->mapa[i]->counted = 0;
+    }
+}
+
+void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status) {
+    // Antes de chamar isso, eu quero setar counted como 0 (usar zera_counted)!
+    if(borda(i,j)) {
+        return;
+    }
+    if(m->mapa[ID(i,j)]->cor == minha_cor && !m->mapa[ID(i,j)]->counted) { // Achei outro cara com a minha cor. Seta status.
+        m->mapa[ID(i,j)]->counted = 1;
+        m->mapa[ID(i,j)]->status = status;
+        flood_set_status(m, i+1, j, minha_cor, status);
+        flood_set_status(m, i-1, j, minha_cor, status);
+        flood_set_status(m, i, j+1, minha_cor, status);
+        flood_set_status(m, i, j-1, minha_cor, status);
+    }
+    return; // Se cheguei aqui, eh porque essa celula nao eh da mesma cor, entao ignora.
+}

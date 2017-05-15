@@ -13,7 +13,7 @@ typedef struct vertice *vertice;
 typedef struct aresta *aresta;
 
 struct celula {
-    int cor, counted;
+    int cor, counted, status;
     vertice v;
 };
 
