@@ -154,7 +154,7 @@ int tipo_fronteira(tmapa *m, int i, int j, int cor) {
 int checa_condicoes(tmapa *m, int i, int j, int cor) {
     if(borda(i,j)) // Condicao 1
         return 1;
-    if(m->mapa[ID(i,j)]->cor == m->mapa[0]->cor) // Condicao 2
+    if(m->mapa[ID(i,j)]->status == STATUS_MAIN) // Condicao 2
         return 1;
     if(m->mapa[ID(i,j)]->cor == cor) // Condicao 3
         return 2;

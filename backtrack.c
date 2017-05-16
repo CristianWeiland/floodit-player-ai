@@ -6,7 +6,8 @@
 #define N 500000000
 #define MAX_JOGADAS 200
 
-int fila[N], Head, Tail, Seed;
+int Head, Tail, Seed;
+int8_t *fila;
 
 typedef struct tmapa tmapa;
 
@@ -212,6 +213,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    fila = (int8_t*) malloc(N * sizeof(int8_t));
+
     m.nlinhas = atoi(argv[1]);
     m.ncolunas = atoi(argv[2]);
     m.ncores = atoi(argv[3]);
@@ -225,5 +228,6 @@ int main(int argc, char **argv) {
     //mostra_mapa_cor(&m);
 
     backtrack(&m);
+    free(fila);
     return 0;
 }
