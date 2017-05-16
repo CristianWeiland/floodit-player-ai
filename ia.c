@@ -8,13 +8,161 @@
 #include "mapa.h"
 #include "grafo.h"
 
-// TODO: Destruir os grafos nas iteracoes, ou parar de recria-lo e soh atualiza-lo.
-
 int jogada_random(tmapa m) {
     return rand() % m.ncores + 1;
 }
 
+int guloso_fronteira_externa(tmapa *m) {
+    // Guloso olhando soh matriz.
+    int i, cores[m->ncores], best, second, id;
+
+    best = 0;
+    second = best;
+    for(i=0; i<m->ncores; ++i) {
+        cores[i] = 0;
+    }
+    zera_status(m);
+
+    zera_counted(m);
+    flood_set_status(m, 0, 0, m->mapa[0]->cor, STATUS_MAIN);
+
+    zera_counted2(m);
+    define_fronteira_vizinhos(m, 0, 0);
+
+    zera_counted(m);
+    // TA ERRADO! Ta pegando mais do que deveria... Olhar execucao com parametros 5 5 5 10.
+    /*
+   0 1 2 3 4
+   0: 4 4 4 1 4
+   1: 3 1 2 3 3
+   2: 4 4 4 4 5
+   3: 2 1 4 2 4
+   4: 4 5 1 2 3
+
+    Vira...:
+
+   0 1 2 3 4
+   0: 1 1 1 4 0
+   1: 4 3 3 0 0
+   2: 0 0 0 0 0
+   3: 0 0 0 0 0
+   4: 0 0 0 0 0
+    */
+    define_front_int_ext(m);
+
+    // Agora que eu tenho as fronteiras devidamente definidas, tenho que contar quantos de cada cor posso eliminar.
+    for(i=0; i<m->tam; ++i) {
+        if(m->mapa[i]->status == STATUS_F_EXT) {
+            id = m->mapa[i]->cor - FIRST_COLOR;
+            cores[id]++;
+            if(cores[best] < cores[id]) {
+                second = best;
+                best = id;
+            }
+        }
+    }
+    /*
+    if(cores[second] == cores[best]) {
+        // Se eu cheguei aqui eh porque empatou. Preciso de um criterio de desempate. Posso usar fronteira interna.
+    }
+    */
+    return best + FIRST_COLOR;
+}
+
+void define_fronteira_vizinhos(tmapa *m, int i, int j) {
+    // Vou setar com STATUS_F todo mundo da fronteira, seja interna ou externa. A ideia eh simples:
+    // pra todos os vizinhos das celulas com status = STATUS_MAIN, faco um flood_set_status(STATUS_F)
+    if(borda(i,j))
+        return;
+    if(m->mapa[ID(i,j)]->counted2)
+        return;
+    m->mapa[ID(i,j)]->counted2 = 1;
+    if(m->mapa[ID(i,j)]->status != STATUS_MAIN) {
+        // Eh outra cor. Eh fronteira. Nao sei se interna ou externa, por isso seto como STATUS_F.
+        zera_counted(m);
+        flood_set_status(m, i, j, m->mapa[ID(i,j)]->cor, STATUS_F);
+        return;
+    }
+    // Se cheguei ate aqui, essa celula nao eh borda, eh da cor Main e nao foi contado. Chama pros vizinhos.
+    define_fronteira_vizinhos(m, i+1, j);
+    define_fronteira_vizinhos(m, i-1, j);
+    define_fronteira_vizinhos(m, i, j+1);
+    define_fronteira_vizinhos(m, i, j-1);
+}
+
+void define_front_int_ext(tmapa *m) {
+    // Percorre todas as celulas. Se for fronteira e nao for definido se eh interna ou externa, verifica.
+    int i, j;
+
+    for(i=0; i<m->nlinhas; ++i) {
+        for(j=0; j<m->ncolunas; ++j) {
+            if(m->mapa[ID(i,j)]->status == STATUS_F) {
+                if(tipo_fronteira(m, i, j, m->mapa[ID(i,j)]->cor)) {
+                    zera_counted(m);
+                    flood_set_status(m, i, j, m->mapa[ID(i,j)]->cor, STATUS_F_INT);
+                } else {
+                    zera_counted(m);
+                    flood_set_status(m, i, j, m->mapa[ID(i,j)]->cor, STATUS_F_EXT);
+                }
+            }
+        }
+    }
+}
+
+int tipo_fronteira(tmapa *m, int i, int j, int cor) {
+    // Retorna 1 se achar que eh fronteira interna, 0 caso contrario.
+    // Atualmente, para um quadrado qualquer, eu posso dizer que ele eh fronteira interna se TODAS as celulas ao seu redor forem:
+    // 1- Borda;
+    // 2- Cor == main;
+    // 3- Cor == mesma que eu;
+    // Se qualquer uma dessas condicoes nao for atendida PRA QUALQUER CELULA, retorna 0. Em outras palavras, soh eh fronteira
+    // interna se as 3 condicoes forem atendidas pra TODAS as celulas.
+    int ret;
+
+    if(m->mapa[ID(i,j)]->counted) // Jah foi contado, retorna o valor 'neutro' (não atrapalha ninguém)
+        return 1;
+
+    m->mapa[ID(i,j)]->counted = 1;
+
+    ret = checa_condicoes(m, i+1, j, cor);
+    if(ret == 2)
+        ret = tipo_fronteira(m, i+1, j, cor);
+    if(ret == 0)
+        return 0;
+
+    ret = checa_condicoes(m, i-1, j, cor);
+    if(ret == 2)
+        ret = tipo_fronteira(m, i-1, j, cor);
+    if(ret == 0)
+        return 0;
+
+    ret = checa_condicoes(m, i, j+1, cor);
+    if(ret == 2)
+        ret = tipo_fronteira(m, i, j+1, cor);
+    if(ret == 0)
+        return 0;
+
+    ret = checa_condicoes(m, i, j-1, cor);
+    if(ret == 2)
+        ret = tipo_fronteira(m, i, j-1, cor);
+    if(ret == 0)
+        return 0;
+
+    return 1;
+}
+
+int checa_condicoes(tmapa *m, int i, int j, int cor) {
+    if(borda(i,j)) // Condicao 1
+        return 1;
+    if(m->mapa[ID(i,j)]->cor == m->mapa[0]->cor) // Condicao 2
+        return 1;
+    if(m->mapa[ID(i,j)]->cor == cor) // Condicao 3
+        return 2;
+    return 0;
+}
+
 int guloso(tmapa m, grafo g) {
+    // Guloso olhando o grafo.
     int i;
     no elem;
     aresta a;
@@ -108,32 +256,10 @@ int proxima_jogada(tmapa m, grafo g) {
         return r;
     }
 
-    // Metodo 3: Começa indo até o bloco mais sudoeste, depois faz um guloso.
-/*
-    if(i == -1) {
-        static int x1, x2, y1, y2, *jogadas;
-        bloco_baixo_direita(&x1, &y1, &x2, &y2);
-        i = menor_caminho(m, g, mais_proximo(m, x1, y1, x2, y2), jogadas);
-    } else if(i == v->d-1) {
-        i = -2;
-    } else if(i >= 0) {
-        ++i;
-        return jogadas[i-1];
-    }
-*/
-/*
-    if(i == -1) {
-        static int x1, x2, y1, y2, *jogadas;
-        bloco_baixo_direita(&x1, &y1, &x2, &y2);
-        i = menor_caminho(m, g, mais_proximo(m, x1, y1, x2, y2), jogadas);
-        while(i < (v->d-2) ) {
-            pinta_mapa(&m, jogadas[i++]);
-            ++Njogadas;
-        }
-        i = -2;
-        return jogadas[v->d-1];
-    }
-*/
+    // Algoritmo 1: Guloso fronteira interna/externa
+    r = guloso_fronteira_externa(&m);
+    printf("Retornando %d\n", r);
+    return r;
 
     // Metodo 2: Guloso
     return guloso(m, g);
@@ -206,17 +332,24 @@ int main(int argc, char **argv) {
     g = cria_grafos(&m);
 
     mostra_mapa_cor(&m, 0);
-    escreve_grafo(stdout, g);
+    //escreve_grafo(stdout, g);
 
     while(!acabou(m)) {
-        //mostra_mapa_cor(&m, 0); // para mostrar sem cores use mostra_mapa(&m);
         cor = proxima_jogada(m, g);
         //printf("A cor selecionada eh %d\n", cor);
         pinta_mapa(&m, cor);
         // Precisa destruir o grafo g!
         destroi_grafo(g);
-        g = cria_grafos(&m);
+        g = cria_grafos(&m); // Nao posso comentar isso enquanto eu tiver usando o jogada_otima!
         ++Njogadas;
+
+        mostra_mapa_cor(&m, 0);
+        mostra_mapa_status(&m);
+
+        if(Njogadas > 20) {
+            printf("Acho que loop infinito. Quitando...\n");
+            exit(1);
+        }
     }
 
     //mostra_mapa_cor(&m, 1); // para mostrar sem cores use mostra_mapa(&m);
