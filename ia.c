@@ -8,6 +8,8 @@
 #include "mapa.h"
 #include "grafo.h"
 
+// 5 5 5 13 tem bastante fronteira interna.
+
 int jogada_random(tmapa m) {
     return rand() % m.ncores + 1;
 }
@@ -28,27 +30,11 @@ int guloso_fronteira_externa(tmapa *m) {
 
     zera_counted2(m);
     define_fronteira_vizinhos(m, 0, 0);
+    //mostra_mapa_status(m);
 
     zera_counted(m);
-    // TA ERRADO! Ta pegando mais do que deveria... Olhar execucao com parametros 5 5 5 10.
-    /*
-   0 1 2 3 4
-   0: 4 4 4 1 4
-   1: 3 1 2 3 3
-   2: 4 4 4 4 5
-   3: 2 1 4 2 4
-   4: 4 5 1 2 3
-
-    Vira...:
-
-   0 1 2 3 4
-   0: 1 1 1 4 0
-   1: 4 3 3 0 0
-   2: 0 0 0 0 0
-   3: 0 0 0 0 0
-   4: 0 0 0 0 0
-    */
     define_front_int_ext(m);
+    mostra_mapa_status(m);
 
     // Agora que eu tenho as fronteiras devidamente definidas, tenho que contar quantos de cada cor posso eliminar.
     for(i=0; i<m->tam; ++i) {
@@ -92,12 +78,20 @@ void define_fronteira_vizinhos(tmapa *m, int i, int j) {
 
 void define_front_int_ext(tmapa *m) {
     // Percorre todas as celulas. Se for fronteira e nao for definido se eh interna ou externa, verifica.
-    int i, j;
+    // Eu to chamando zera_counted MUITAS vezes. Pra reduzir, eu posso fazer um esquema assim: começa os counteds com 0.
+    // Em vez de fazer m->counted = 1 e m->counted == 1, faz assim: cria um contador de iterações, count.
+    // Eu seto m->counted = count, e comparo com m->counted == count.
+    int i, j, ret;
+
+    Count = 0;
 
     for(i=0; i<m->nlinhas; ++i) {
-        for(j=0; j<m->ncolunas; ++j) {
+        for(j=0; j<m->ncolunas; ++j, ++Count) {
             if(m->mapa[ID(i,j)]->status == STATUS_F) {
-                if(tipo_fronteira(m, i, j, m->mapa[ID(i,j)]->cor)) {
+                zera_counted(m);
+                ret = tipo_fronteira(m, i, j, m->mapa[ID(i,j)]->cor);
+                //printf("Eh %d\n", ret);
+                if(ret) {
                     zera_counted(m);
                     flood_set_status(m, i, j, m->mapa[ID(i,j)]->cor, STATUS_F_INT);
                 } else {
@@ -119,30 +113,48 @@ int tipo_fronteira(tmapa *m, int i, int j, int cor) {
     // interna se as 3 condicoes forem atendidas pra TODAS as celulas.
     int ret;
 
-    if(m->mapa[ID(i,j)]->counted) // Jah foi contado, retorna o valor 'neutro' (não atrapalha ninguém)
+    if(m->mapa[ID(i,j)]->counted == Count) // Jah foi contado, retorna o valor 'neutro' (não atrapalha ninguém)
         return 1;
 
-    m->mapa[ID(i,j)]->counted = 1;
+    //printf("Pos = %d-%d, cor = %d, cor2 = %d\n", i, j, cor, m->mapa[ID(i,j)]->cor);
+
+    m->mapa[ID(i,j)]->counted = Count;
 
     ret = checa_condicoes(m, i+1, j, cor);
+    /*
+    if(!borda(i+1,j))
+        printf("Direita (cor %d e status %d) deu %d\n", m->mapa[ID(i,j)]->cor, m->mapa[ID(i,j)]->status, ret);
+    */
     if(ret == 2)
         ret = tipo_fronteira(m, i+1, j, cor);
     if(ret == 0)
         return 0;
 
     ret = checa_condicoes(m, i-1, j, cor);
+    /*
+    if(!borda(i-1,j))
+        printf("Esquerda (cor %d e status %d) deu %d\n", m->mapa[ID(i,j)]->cor, m->mapa[ID(i,j)]->status, ret);
+    */
     if(ret == 2)
         ret = tipo_fronteira(m, i-1, j, cor);
     if(ret == 0)
         return 0;
 
     ret = checa_condicoes(m, i, j+1, cor);
+    /*
+    if(!borda(i,j+1))
+        printf("Cima (cor %d e status %d) deu %d\n", m->mapa[ID(i,j)]->cor, m->mapa[ID(i,j)]->status, ret);
+    */
     if(ret == 2)
         ret = tipo_fronteira(m, i, j+1, cor);
     if(ret == 0)
         return 0;
 
     ret = checa_condicoes(m, i, j-1, cor);
+    /*
+    if(!borda(i,j-1))
+        printf("Baixo (cor %d e status %d) deu %d\n", m->mapa[ID(i,j)]->cor, m->mapa[ID(i,j)]->status, ret);
+    */
     if(ret == 2)
         ret = tipo_fronteira(m, i, j-1, cor);
     if(ret == 0)
@@ -344,7 +356,7 @@ int main(int argc, char **argv) {
         ++Njogadas;
 
         mostra_mapa_cor(&m, 0);
-        mostra_mapa_status(&m);
+        //mostra_mapa_status(&m);
 
         if(Njogadas > 20) {
             printf("Acho que loop infinito. Quitando...\n");
@@ -360,35 +372,4 @@ int main(int argc, char **argv) {
     destroi_tmapa(m, 0);
 
     return 0;
-}
-
-// Funções não prontas
-grafo atualiza_grafo(grafo g, int cor) {
-    no elem, child;
-    vertice w;
-    aresta a;
-    int i;
-    for(elem = primeiro_no(g->lider->saida); elem; elem = proximo_no(elem)) {
-        w = (vertice) conteudo(elem);
-        // Só quero vizinhos da mesma cor, foram os que eu pintei.
-        if(w->cor != cor)
-            continue;
-        // Adiciona *i e *j de w em lider.
-        for(i=0; i<w->elems; ++i) {
-            g->lider->i[g->lider->elems + i] = w->i[i];
-            g->lider->j[g->lider->elems + i] = w->j[i];
-        }
-        g->lider->elems += w->elems;
-        /* Acho que aqui eu arrumei os vertices. Provavelmente se eu chamar o cria_arestas() funciona. Pensar nisso!
-        for(child = primeiro_no(w->saida); child; child = proximo_no(child)) {
-            a = (aresta) conteudo(child);
-            a->vs = g->lider;
-        }
-        */
-        destroi_lista(w->saida, NULL);
-        destroi_lista(w->entrada, destroi_aresta);
-        destroi_vertice(w);
-    }
-
-    return g;
 }

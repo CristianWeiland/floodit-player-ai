@@ -5,7 +5,7 @@
 #include "mapa.h"
 #include "grafo.h"
 
-int callCount = 0;
+int callCount = 0, Count;
 
 int jogada_random(tmapa m);
 
