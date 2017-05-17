@@ -5,12 +5,17 @@
 
 int VerticeID, TamMatriz;
 
+typedef struct avaliador avaliador;
 typedef struct celula *celula;
 typedef struct no *no;
 typedef struct lista *lista;
 typedef struct grafo *grafo;
 typedef struct vertice *vertice;
 typedef struct aresta *aresta;
+
+struct avaliador {
+    int cor, n_int, n_ext;
+};
 
 struct celula {
     int cor, counted, status, counted2;
@@ -69,6 +74,7 @@ lista vizinhanca(vertice v, int direcao, grafo g);
 unsigned int grau(vertice v, int direcao, grafo g);
 
 int comp (const void * elem1, const void * elem2);
+int comp_avaliador(const void * elem1, const void * elem2);
 
 // Funcoes criadas por mim. Soh as que tem // no final eu coloquei a implementacao.
 grafo constroi_grafo(void); //

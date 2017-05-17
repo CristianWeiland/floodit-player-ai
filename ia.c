@@ -16,12 +16,14 @@ int jogada_random(tmapa m) {
 
 int guloso_fronteira_externa(tmapa *m) {
     // Guloso olhando soh matriz.
-    int i, cores[m->ncores], best, second, id;
+    int i, best;
+    avaliador cores[m->ncores];
 
     best = 0;
-    second = best;
     for(i=0; i<m->ncores; ++i) {
-        cores[i] = 0;
+        cores[i].cor = i;
+        cores[i].n_int = 0;
+        cores[i].n_ext = 0;
     }
     zera_status(m);
 
@@ -30,37 +32,31 @@ int guloso_fronteira_externa(tmapa *m) {
 
     zera_counted2(m);
     define_fronteira_vizinhos(m, 0, 0);
-    //mostra_mapa_status(m);
 
     zera_counted(m);
     define_front_int_ext(m);
-    mostra_mapa_status(m);
 
     // Agora que eu tenho as fronteiras devidamente definidas, tenho que contar quantos de cada cor posso eliminar.
     for(i=0; i<m->tam; ++i) {
         if(m->mapa[i]->status == STATUS_F_EXT) {
-            id = m->mapa[i]->cor - FIRST_COLOR;
-            cores[id]++;
-            if(cores[best] < cores[id]) {
-                second = best;
-                best = id;
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_ext++;
+        } else if(m->mapa[i]->status == STATUS_F_INT) {
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_int++;
+            // Aqui soh to contando quantos tem na fronteira interna. Não vou usar pra nada a menos que empate.
+        }
+    }
+
+    for(i=0; i<m->ncores; ++i) {
+        if(cores[best].n_ext < cores[i].n_ext || (cores[best].n_ext == cores[i].n_ext && cores[best].n_int < cores[i].n_int)) {
+/*
+            if(cores[best].n_ext == cores[i].n_ext && cores[best].n_int < cores[i].n_int) {
+                printf("DESEMPATE ACIRRAAAAADOOO!\n");
             }
+*/
+            best = i;
         }
     }
-    if(cores[second] == cores[best]) {
-        // Se eu cheguei aqui eh porque empatou. Preciso de um criterio de desempate. Posso usar fronteira interna.
-        // O algoritmo vai ser o seguinte: conta todo mundo da fronteira interna. Acha o índice m tal que cores_internas[m]
-        // seja o maior no vetor. Vê se cores[m] == cores[best], pra ver se é da melhor fronteira externa. Se não for,
-        // cores_internas[m] = -1. Pega o próximo maior de cores_internas, até que cores[m] == cores[best]. Retorna m + FIRST_COLOR.
-        //qsort(cores, m->ncores, sizeof(int), comp); // A ordenação funciona. Fica em ordem decrescente.
-        /*
-        for(i=0; i<m->ncores; ++i) {
-            printf("%d ", cores[i]);
-        }
-        printf(" são as cores.\n");
-        */
-        int cores_internas[m->ncores]; // Como empatou, vou contar quantos de fronteira interna tem.
-    }
+
     return best + FIRST_COLOR;
 }
 

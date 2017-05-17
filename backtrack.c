@@ -3,8 +3,13 @@
 #include <string.h>
 #include <time.h>
 
-#define N 500000000
+#define N 700000000
 #define MAX_JOGADAS 200
+
+#define GERANDO 1
+#define TESTANDO 0
+
+#define MODO GERANDO
 
 int Head, Tail, Seed;
 int8_t *fila;
@@ -162,6 +167,9 @@ int backtrack(tmapa *m) {
     Tail = 2*m->ncores;
 
     while(Head < Tail) {
+        if(Tail > N) {
+            printf("Tail got too big (%d). We are doomed...\n", Tail);
+        }
         n = copia_tmapa(m);
         for(i=0; i<MAX_JOGADAS; ++i) {
             jogadas[i] = -1;
@@ -179,15 +187,15 @@ int backtrack(tmapa *m) {
         }
 
         if(acabou(*n)) {
-            //printf("Seed %d, njogadas: %d\n", Seed, njogadas);
-            //printf("%d\n", Seed);
-            printf("%d\n", njogadas);
-            /*
-            for(i=0; i<njogadas; ++i) {
-                printf("%d\n", jogadas[i]);
+            if(MODO == TESTANDO) {
+                printf("%d\n", njogadas);
+            } else if(MODO == GERANDO) {
+                printf("%d\n", Seed);
+                printf("%d\n", njogadas);
+                for(i=0; i<njogadas; ++i) {
+                    printf("%d\n", jogadas[i]);
+                }
             }
-            */
-            //printf("\n");
             exit(0);
         }
 

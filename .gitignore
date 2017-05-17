@@ -6,3 +6,5 @@ ia
 a.out
 backtrack
 test
+*.json
+database_5_5_5.json
