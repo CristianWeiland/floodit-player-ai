@@ -275,7 +275,6 @@ int proxima_jogada(tmapa m, grafo g) {
 
     // Algoritmo 1: Guloso fronteira interna/externa
     r = guloso_fronteira_externa(&m);
-    printf("Retornando %d\n", r);
     return r;
 
     // Metodo 2: Guloso
@@ -348,7 +347,7 @@ int main(int argc, char **argv) {
 
     g = cria_grafos(&m);
 
-    mostra_mapa_cor(&m, 0);
+    //mostra_mapa_cor(&m, 0);
     //escreve_grafo(stdout, g);
 
     while(!acabou(m)) {
@@ -359,7 +358,7 @@ int main(int argc, char **argv) {
         g = cria_grafos(&m); // Nao posso comentar isso enquanto eu tiver usando o jogada_otima!
         ++Njogadas;
 
-        mostra_mapa_cor(&m, 0);
+        //mostra_mapa_cor(&m, 0);
 
         if(Njogadas > 20) {
             printf("Acho que loop infinito. Quitando...\n");
@@ -369,7 +368,8 @@ int main(int argc, char **argv) {
 
     //mostra_mapa_cor(&m, 1); // para mostrar sem cores use mostra_mapa(&m);
 
-    printf("Parabens! Voce venceu em %d jogadas!\n", Njogadas);
+    //printf("Parabens! Voce venceu em %d jogadas!\n", Njogadas);
+    printf("%d\n", Njogadas);
 
     destroi_grafo(g);
     destroi_tmapa(m, 0);
