@@ -9,7 +9,7 @@
 #define GERANDO 1
 #define TESTANDO 0
 
-#define MODO GERANDO
+#define MODO TESTANDO
 
 int Head, Tail, Seed;
 int8_t *fila;
