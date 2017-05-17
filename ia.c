@@ -267,11 +267,21 @@ int jogada_otima(tmapa *m, grafo g) {
 }
 
 int proxima_jogada(tmapa m, grafo g) {
-    static int i = -1;
     int r = jogada_otima(&m, g);
     /*if(r != -1) {
         return r;
     }*/
+
+    // Algoritmo 2: Guloso fronteira int/ext deopis de andar até algum ponto.
+    /*
+    int i, first, last, *jogadas;
+    vertice v = ALGUMA COISA;
+    first = menor_caminho(&m, g, v, jogadas);
+    last = first + v->d;
+    for(i=first; i<last; ++i) {
+        pinta_mapa(&m, jogadas[i]);
+    }
+    */
 
     // Algoritmo 1: Guloso fronteira interna/externa
     r = guloso_fronteira_externa(&m);
@@ -282,6 +292,18 @@ int proxima_jogada(tmapa m, grafo g) {
 
     // Metodo 1: Random
     return jogada_random(m);
+}
+
+vertice vertice_menor_distancia(tmapa *m, int x1, int y1, int x2, int y2) {
+    int i, j;
+    vertice menor = m->mapa[ID(x1,y1)]->v;
+    for(i=x1; i<x2; ++i) {
+        for(j=y1; j<y2; ++j) {
+            if(m->mapa[ID(i,j)]->v->d < menor->d)
+                menor = m->mapa[ID(i,j)]->v;
+        }
+    }
+    return menor;
 }
 
 void bloco_baixo_direita(int *x1, int *y1, int *x2, int *y2) {
