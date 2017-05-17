@@ -47,11 +47,20 @@ int guloso_fronteira_externa(tmapa *m) {
             }
         }
     }
-    /*
     if(cores[second] == cores[best]) {
         // Se eu cheguei aqui eh porque empatou. Preciso de um criterio de desempate. Posso usar fronteira interna.
+        // O algoritmo vai ser o seguinte: conta todo mundo da fronteira interna. Acha o índice m tal que cores_internas[m]
+        // seja o maior no vetor. Vê se cores[m] == cores[best], pra ver se é da melhor fronteira externa. Se não for,
+        // cores_internas[m] = -1. Pega o próximo maior de cores_internas, até que cores[m] == cores[best]. Retorna m + FIRST_COLOR.
+        //qsort(cores, m->ncores, sizeof(int), comp); // A ordenação funciona. Fica em ordem decrescente.
+        /*
+        for(i=0; i<m->ncores; ++i) {
+            printf("%d ", cores[i]);
+        }
+        printf(" são as cores.\n");
+        */
+        int cores_internas[m->ncores]; // Como empatou, vou contar quantos de fronteira interna tem.
     }
-    */
     return best + FIRST_COLOR;
 }
 
@@ -264,9 +273,9 @@ int jogada_otima(tmapa *m, grafo g) {
 int proxima_jogada(tmapa m, grafo g) {
     static int i = -1;
     int r = jogada_otima(&m, g);
-    if(r != -1) {
+    /*if(r != -1) {
         return r;
-    }
+    }*/
 
     // Algoritmo 1: Guloso fronteira interna/externa
     r = guloso_fronteira_externa(&m);
@@ -348,7 +357,6 @@ int main(int argc, char **argv) {
 
     while(!acabou(m)) {
         cor = proxima_jogada(m, g);
-        //printf("A cor selecionada eh %d\n", cor);
         pinta_mapa(&m, cor);
         // Precisa destruir o grafo g!
         destroi_grafo(g);
@@ -356,7 +364,6 @@ int main(int argc, char **argv) {
         ++Njogadas;
 
         mostra_mapa_cor(&m, 0);
-        //mostra_mapa_status(&m);
 
         if(Njogadas > 20) {
             printf("Acho que loop infinito. Quitando...\n");

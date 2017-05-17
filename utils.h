@@ -68,6 +68,8 @@ grafo copia_grafo(grafo g);
 lista vizinhanca(vertice v, int direcao, grafo g);
 unsigned int grau(vertice v, int direcao, grafo g);
 
+int comp (const void * elem1, const void * elem2);
+
 // Funcoes criadas por mim. Soh as que tem // no final eu coloquei a implementacao.
 grafo constroi_grafo(void); //
 vertice constroi_vertice(void); //
