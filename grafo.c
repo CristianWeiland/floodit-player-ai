@@ -70,8 +70,13 @@ void cria_arestas(tmapa *m, grafo g) {
     aresta a;
 
     //printf("Alocando %d bytes... Len = %d\n", g->len * g->len * g->len * sizeof(vertice), g->len);
-    l = (vertice *) malloc(g->len * g->len * g->len * sizeof(vertice));
-
+    //long int len = g->len * g->len * g->len * sizeof(vertice);
+    int len = g->len * sizeof(vertice);
+    l = (vertice *) malloc(len);
+    if(!l) {
+        printf("(cria_arestas) Erro de malloc. Pedindo %ld memoria.G->len = %d, size = %d\n", len, g->len, sizeof(vertice));
+        exit(1);
+    }
 
     /*
         Porque nao allocar soh g->len pra l? A resposta eh porque as vezes eu adiciono o mesmo vertice mais do que uma vez.
@@ -108,6 +113,11 @@ void cria_arestas(tmapa *m, grafo g) {
             if(!repetido) {
                 l[tail] = a->vc;
                 ++tail;
+                if(tail > len) {
+                    printf("Aumentando tamanho de %d pra %d.", len, 2*len);
+                    len *= 2;
+                    l = (vertice *) realloc(l, len);
+                }
             }
         }
     }

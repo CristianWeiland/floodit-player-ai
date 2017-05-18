@@ -8,14 +8,12 @@
 #include "mapa.h"
 #include "grafo.h"
 
-// 5 5 5 13 tem bastante fronteira interna.
-
 #define RANDOM 0
 #define GULOSO 1
 #define GULOSO_INT_EXT 2
 #define GULOSO_INT_EXT_MOVE 3
 
-#define ALGORITMO GULOSO_INT_EXT_MOVE
+int Algoritmo = GULOSO_INT_EXT_MOVE;
 
 int jogada_random(tmapa m) {
     return rand() % m.ncores + 1;
@@ -280,7 +278,7 @@ int proxima_jogada(tmapa m, grafo g) {
     }*/
 
     // Algoritmo 2: Guloso fronteira int/ext deopis de andar até algum ponto.
-    if(ALGORITMO == GULOSO_INT_EXT_MOVE) {
+    if(Algoritmo == GULOSO_INT_EXT_MOVE) {
         static int executado = 0;
         if(!executado) {
             int i, first, last, *jogadas, x1, x2, y1, y2;
@@ -300,17 +298,17 @@ int proxima_jogada(tmapa m, grafo g) {
     }
 
     // Algoritmo 1: Guloso fronteira interna/externa
-    if(ALGORITMO == GULOSO_INT_EXT) {
+    if(Algoritmo == GULOSO_INT_EXT) {
         return guloso_fronteira_externa(&m);
     }
 
     // Metodo 2: Guloso
-    if(ALGORITMO == GULOSO) {
+    if(Algoritmo == GULOSO) {
         return guloso(m, g);
     }
 
     // Metodo 1: Random
-    if(ALGORITMO == RANDOM) {
+    if(Algoritmo == RANDOM) {
         return jogada_random(m);
     }
 }
@@ -390,8 +388,8 @@ int main(int argc, char **argv) {
     int semente;
     grafo g;
 
-    if(argc < 4 || argc > 5) {
-        printf("uso: %s <numero_de_linhas> <numero_de_colunas> <numero_de_cores> [<semente_aleatoria>]\n", argv[0]);
+    if(argc < 5 || argc > 6) {
+        printf("uso: %s <numero_de_linhas> <numero_de_colunas> <numero_de_cores> <algoritmo> [<semente_aleatoria>]\n", argv[0]);
         exit(1);
     }
 
@@ -400,14 +398,16 @@ int main(int argc, char **argv) {
     m.ncores = atoi(argv[3]);
     m.tam = m.nlinhas * m.ncolunas;
 
+    Algoritmo = atoi(argv[4]);
+
     VerticeID = 0;
     Njogadas = 0;
     Linhas = m.nlinhas;
     Colunas = m.ncolunas;
     TamMatriz = Linhas * Colunas;
 
-    if(argc == 5)
-        semente = atoi(argv[4]);
+    if(argc == 6)
+        semente = atoi(argv[5]);
     else
         semente = -1;
 
@@ -428,7 +428,7 @@ int main(int argc, char **argv) {
 
         //mostra_mapa_cor(&m, 0);
 
-        if(Njogadas > 20) {
+        if(Njogadas > 20000) {
             printf("Acho que loop infinito. Quitando...\n");
             exit(1);
         }
