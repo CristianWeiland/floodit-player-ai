@@ -10,6 +10,13 @@
 
 // 5 5 5 13 tem bastante fronteira interna.
 
+#define RANDOM 0
+#define GULOSO 1
+#define GULOSO_INT_EXT 2
+#define GULOSO_INT_EXT_MOVE 3
+
+#define ALGORITMO GULOSO_INT_EXT_MOVE
+
 int jogada_random(tmapa m) {
     return rand() % m.ncores + 1;
 }
@@ -273,34 +280,53 @@ int proxima_jogada(tmapa m, grafo g) {
     }*/
 
     // Algoritmo 2: Guloso fronteira int/ext deopis de andar até algum ponto.
-    /*
-    int i, first, last, *jogadas;
-    vertice v = ALGUMA COISA;
-    first = menor_caminho(&m, g, v, jogadas);
-    last = first + v->d;
-    for(i=first; i<last; ++i) {
-        pinta_mapa(&m, jogadas[i]);
+    if(ALGORITMO == GULOSO_INT_EXT_MOVE) {
+        static int executado = 0;
+        if(!executado) {
+            int i, first, last, *jogadas, x1, x2, y1, y2;
+            bloco_baixo_direita(&x1, &y1, &x2, &y2);
+            vertice v = vertice_menor_distancia(&m, x1, y1, x2, y2);
+            first = menor_caminho(&m, g, v, &jogadas);
+            last = first + v->d;
+            for(i=first; i<last; ++i) {
+                //printf("First = %d, last = %d, jogadas[%d] = %d\n", first, last, i, jogadas[i]);
+                pinta_mapa(&m, jogadas[i]);
+                ++Njogadas;
+                //mostra_mapa_cor(&m, 0);
+            }
+            executado = 1;
+        }
+        return guloso_fronteira_externa(&m);
     }
-    */
 
     // Algoritmo 1: Guloso fronteira interna/externa
-    r = guloso_fronteira_externa(&m);
-    return r;
+    if(ALGORITMO == GULOSO_INT_EXT) {
+        return guloso_fronteira_externa(&m);
+    }
 
     // Metodo 2: Guloso
-    return guloso(m, g);
+    if(ALGORITMO == GULOSO) {
+        return guloso(m, g);
+    }
 
     // Metodo 1: Random
-    return jogada_random(m);
+    if(ALGORITMO == RANDOM) {
+        return jogada_random(m);
+    }
 }
 
 vertice vertice_menor_distancia(tmapa *m, int x1, int y1, int x2, int y2) {
-    int i, j;
+    int i, j, x, y;
     vertice menor = m->mapa[ID(x1,y1)]->v;
+    x = x1;
+    y = y1;
     for(i=x1; i<x2; ++i) {
         for(j=y1; j<y2; ++j) {
-            if(m->mapa[ID(i,j)]->v->d < menor->d)
+            if(m->mapa[ID(i,j)]->v->d < menor->d) {
                 menor = m->mapa[ID(i,j)]->v;
+                x = i;
+                y = j;
+            }
         }
     }
     return menor;
@@ -309,33 +335,53 @@ vertice vertice_menor_distancia(tmapa *m, int x1, int y1, int x2, int y2) {
 void bloco_baixo_direita(int *x1, int *y1, int *x2, int *y2) {
     *x1 = (int) (Linhas * 3) / 4;
     *y1 = (int) (Colunas * 3) / 4;
-    *x2 = Linhas - 1;
-    *y2 = Colunas - 1;
+    *x2 = Linhas;
+    *y2 = Colunas;
 }
 
-int menor_caminho(tmapa *m, grafo g, vertice v, int *jogadas) {
+int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas) {
     // Cria um vetor de v->d jogadas, que fazem vc sair de g->lider e chegar em v.
     // Devolve a posição da primeira jogada (deveria ser 0). O vetor acab em v->d;
 
-    int i;
+    int i, debug = 0;
     vertice w;
     aresta a;
+    no elem;
 
-    jogadas = (int *) malloc(v->d * sizeof(int));
+    *jogadas = (int *) malloc(v->d * sizeof(int));
 
-    for(i = v->d-1, w = v; w != g->lider; --i) {
+    if(debug) {
+        mostra_mapa_cor(m, 0);
+        escreve_grafo(stdout, g);
+        printf("Comecando no vertice %d, cor %d, elems %d\n", v->id, v->cor, v->elems);
+    }
+
+    for(i = v->d-1, w = v; w != g->lider && i >= 0; --i) {
         // Adiciona a cor do vertice que eu quero pintar.
-        jogadas[i] = w->cor;
-
+        (*jogadas)[i] = w->cor;
+        if(debug)
+            printf("Jogada = %d, elems = %d\n", (*jogadas)[i], w->elems);
         // Faz w apontar pro vertice anterior.
-        a = (aresta) conteudo(primeiro_no(v->entrada));
+        elem = primeiro_no(w->entrada);
+        if(!elem) {
+            puts("(menor_caminho) Nao consegui achar caminho.");
+            exit(1);
+        }
+        a = (aresta) conteudo(elem);
         w = a->vs;
     }
+/*
+    if(i < 0) ++i;
 
     if(i != 0) {
         printf("Vetor de jogadas não começa no 0, começa em %d\n", i);
     }
     return i;
+*/
+    if(i != -1) {
+        puts("Funcao menor_caminho pode ter problema no i. Conferir please.");
+    }
+    return 0;
 }
 
 int main(int argc, char **argv) {
