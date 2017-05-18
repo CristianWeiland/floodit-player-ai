@@ -143,6 +143,30 @@ void mostra_mapa_cor(tmapa *m, int shouldClear) {
     puts("");
 }
 
+void mostra_mapa_status(tmapa *m) {
+    int i, j;
+    char* cor_ansi[] = { "\x1b[0m",
+		             "\x1b[31m", "\x1b[32m", "\x1b[33m",
+		             "\x1b[34m", "\x1b[35m", "\x1b[36m",
+		             "\x1b[37m", "\x1b[30;1m", "\x1b[31;1m",
+		             "\x1b[32;1m", "\x1b[33;1m", "\x1b[34;1m",
+		             "\x1b[35;1m", "\x1b[36;1m", "\x1b[37;1m" };
+    for(i=0; i<m->ncolunas; ++i) {
+        printf("%d ", i);
+    }
+    printf("\n");
+    for(i = 0; i < m->nlinhas; i++) {
+        printf("%d: ", i);
+        for(j = 0; j < m->ncolunas; j++)
+            if(m->ncores > 10)
+	printf("%s%02d%s ", cor_ansi[m->mapa[ID(i,j)]->status], m->mapa[ID(i,j)]->status, cor_ansi[0]);
+            else
+	printf("%s%d%s ", cor_ansi[m->mapa[ID(i,j)]->status], m->mapa[ID(i,j)]->status, cor_ansi[0]);
+        printf("\n");
+    }
+    puts("");
+}
+
 void pinta(tmapa *m, int l, int c, int fundo, int cor) {
     m->mapa[ID(l,c)]->cor = cor;
     if(l < m->nlinhas - 1 && m->mapa[ID(l+1,c)]->cor == fundo)
@@ -178,10 +202,24 @@ inline int borda(int i, int j) {
     return 0;
 }
 
+inline void zera_status(tmapa *m) {
+    int i;
+    for(i=0; i<m->tam; ++i) {
+        m->mapa[i]->status = 0;
+    }
+}
+
 inline void zera_counted(tmapa *m) {
     int i;
     for(i=0; i<m->tam; ++i) {
         m->mapa[i]->counted = 0;
+    }
+}
+
+inline void zera_counted2(tmapa *m) {
+    int i;
+    for(i=0; i<m->tam; ++i) {
+        m->mapa[i]->counted2 = 0;
     }
 }
 
@@ -190,8 +228,10 @@ void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status) {
     if(borda(i,j)) {
         return;
     }
-    if(m->mapa[ID(i,j)]->cor == minha_cor && !m->mapa[ID(i,j)]->counted) { // Achei outro cara com a minha cor. Seta status.
-        m->mapa[ID(i,j)]->counted = 1;
+    if(m->mapa[ID(i,j)]->counted)
+        return;
+    m->mapa[ID(i,j)]->counted = 1;
+    if(m->mapa[ID(i,j)]->cor == minha_cor) { // Achei outro cara com a minha cor. Seta status.
         m->mapa[ID(i,j)]->status = status;
         flood_set_status(m, i+1, j, minha_cor, status);
         flood_set_status(m, i-1, j, minha_cor, status);

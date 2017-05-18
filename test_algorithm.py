@@ -36,8 +36,12 @@ for key in data:
     ncolunas = value['ncolunas']
     njogadas = value['njogadas']
 
-    result = subprocess.run([cmd, nlinhas, ncolunas, ncores, str(seed)], stdout=subprocess.PIPE)
-    output = result.stdout.decode('utf-8')
+#    result = subprocess.run([cmd, nlinhas, ncolunas, ncores, str(seed)], stdout=subprocess.PIPE)
+#    output = result.stdout.decode('utf-8')
+#    result = int(output)
+
+    result = subprocess.check_output([cmd, nlinhas, ncolunas, ncores, str(seed)])
+    output = str(result.decode('utf-8'))
     result = int(output)
 
     total += result

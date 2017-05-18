@@ -3,10 +3,16 @@
 #include <string.h>
 #include <time.h>
 
-#define N 500000000
+#define N 700000000
 #define MAX_JOGADAS 200
 
-int fila[N], Head, Tail, Seed;
+#define GERANDO 1
+#define TESTANDO 0
+
+#define MODO GERANDO
+
+int Head, Tail, Seed;
+int8_t *fila;
 
 typedef struct tmapa tmapa;
 
@@ -161,6 +167,9 @@ int backtrack(tmapa *m) {
     Tail = 2*m->ncores;
 
     while(Head < Tail) {
+        if(Tail > N) {
+            printf("Tail got too big (%d). We are doomed...\n", Tail);
+        }
         n = copia_tmapa(m);
         for(i=0; i<MAX_JOGADAS; ++i) {
             jogadas[i] = -1;
@@ -178,15 +187,15 @@ int backtrack(tmapa *m) {
         }
 
         if(acabou(*n)) {
-            //printf("Seed %d, njogadas: %d\n", Seed, njogadas);
-            //printf("%d\n", Seed);
-            printf("%d\n", njogadas);
-            /*
-            for(i=0; i<njogadas; ++i) {
-                printf("%d\n", jogadas[i]);
+            if(MODO == TESTANDO) {
+                printf("%d\n", njogadas);
+            } else if(MODO == GERANDO) {
+                printf("%d\n", Seed);
+                printf("%d\n", njogadas);
+                for(i=0; i<njogadas; ++i) {
+                    printf("%d\n", jogadas[i]);
+                }
             }
-            */
-            //printf("\n");
             exit(0);
         }
 
@@ -212,6 +221,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
+    fila = (int8_t*) malloc(N * sizeof(int8_t));
+
     m.nlinhas = atoi(argv[1]);
     m.ncolunas = atoi(argv[2]);
     m.ncores = atoi(argv[3]);
@@ -225,5 +236,6 @@ int main(int argc, char **argv) {
     //mostra_mapa_cor(&m);
 
     backtrack(&m);
+    free(fila);
     return 0;
 }

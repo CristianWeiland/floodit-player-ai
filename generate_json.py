@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+# Saida do programa deve ser:
+# Seed (int)
+# Njogadas
+# Jogada 1
+# Jogada 2
+# ...
+# Jogada n
+
 import sys, subprocess, json
 from pathlib import Path
 from random import randint
@@ -10,9 +18,12 @@ if len(sys.argv) != 6:
     sys.exit()
 
 def run_command(seed):
-    result = subprocess.run(['./backtrack', nlinhas, ncolunas, ncores, str(seed)], stdout=subprocess.PIPE)
-    output = result.stdout.decode('utf-8')
+    #result = subprocess.run(['./backtrack', nlinhas, ncolunas, ncores, str(seed)], stdout=subprocess.PIPE)
+    #output = result.stdout.decode('utf-8')
+    result = subprocess.check_output(['./backtrack', nlinhas, ncolunas, ncores, str(seed)])
+    output = str(result.decode('utf-8'))
     output = output.lstrip().rstrip().splitlines()
+    print(output)
     return output
 
 nlinhas = sys.argv[1]

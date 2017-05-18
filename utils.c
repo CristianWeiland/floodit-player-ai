@@ -320,3 +320,26 @@ grafo escreve_grafo(FILE *output, grafo g) {
 
     return g;
 }
+
+int comp_avaliador(const void * elem1, const void * elem2) {
+    avaliador f = *((avaliador*)elem1);
+    avaliador s = *((avaliador*)elem2);
+    if(f.n_ext > s.n_ext) return -1;
+    if(f.n_ext < s.n_ext) return  1;
+    // Se cheguei aqui, n_ext eh igual.
+    if(f.n_int > s.n_int) return -1;
+    if(f.n_int < s.n_int) return  1;
+/*
+    if (f.n > s.n) return -1;
+    if (f.n < s.n) return  1;
+*/
+    return 0;
+}
+
+int comp(const void * elem1, const void * elem2) {
+    int f = *((int*)elem1);
+    int s = *((int*)elem2);
+    if (f > s) return -1;
+    if (f < s) return  1;
+    return 0;
+}
