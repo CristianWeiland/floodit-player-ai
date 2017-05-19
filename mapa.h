@@ -34,6 +34,7 @@ void destroi_tmapa(tmapa m, int destruir_vertices);
 void mostra_mapa(tmapa *m);
 void mostra_mapa_cor(tmapa *m, int shouldClear);
 void mostra_mapa_status(tmapa *m);
+void mostra_mapa_blocos(tmapa *m);
 void pinta(tmapa *m, int l, int c, int fundo, int cor);
 void pinta_mapa(tmapa *m, int cor);
 int acabou(tmapa m);

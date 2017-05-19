@@ -8,6 +8,8 @@
 #include "mapa.h"
 #include "grafo.h"
 
+#define STEP_D 2
+
 #define RANDOM 0
 #define GULOSO 1
 #define GULOSO_INT_EXT 2
@@ -288,8 +290,10 @@ int proxima_jogada(tmapa m, grafo g) {
             last = first + v->d;
             for(i=first; i<last; ++i) {
                 //printf("First = %d, last = %d, jogadas[%d] = %d\n", first, last, i, jogadas[i]);
+                //mostra_mapa_cor(&m, 1);
                 pinta_mapa(&m, jogadas[i]);
                 ++Njogadas;
+                //getchar();
                 //mostra_mapa_cor(&m, 0);
             }
             executado = 1;
@@ -382,6 +386,28 @@ int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas) {
     return 0;
 }
 
+/* Blocos */
+/*void define_n_blocos(tmapa *m, int stepx, int stepy) {
+    int i0, j0, i, j, px, py, mini, minj;
+
+    px = py = 0;
+
+    for(i0 = 0; i0 < m->nlinhas; i0 += stepx) {
+        for(j0 = 0; j0 < m->ncolunas; j0 += stepy) {
+            mini = ((i0 + stepx) > m->nlinhas) ? m->nlinhas : i0+stepx;
+            for(i=i0; i<mini; ++i) {
+                minj = ((j0 + stepy) > m->ncolunas) ? m->ncolunas: j0+stepy;
+                for(j=j0; j<minj; ++j) {
+                    m->mapa[ID(i,j)]->bloco = px + py;
+                }
+            }
+            ++py;
+        }
+        px += py;
+        py = 0;
+    }
+}*/
+
 int main(int argc, char **argv) {
     int cor;
     tmapa m;
@@ -414,6 +440,9 @@ int main(int argc, char **argv) {
     gera_mapa(&m, semente);
 
     g = cria_grafos(&m);
+
+    //define_n_blocos(&m, ceil( (double) m.nlinhas / STEP_D), ceil( (double) m.ncolunas / STEP_D)); // Funciona!
+    //mostra_mapa_blocos(&m);
 
     //mostra_mapa_cor(&m, 0);
     //escreve_grafo(stdout, g);

@@ -5,10 +5,10 @@ CFLAGS=-std=c99
 all: ia backtrack
 
 ia: ia.c mapa.o utils.o grafo.o
-	$(CC) -g -o $@ $^
+	$(CC) -lm -g -o $@ $^
 
 clean :
 	$(RM) ia *.o
 
 backtrack: backtrack.c
-	$(CC) -O2 -march=native -o $@ $^
+	$(CC) -lm -O2 -march=native -o $@ $^

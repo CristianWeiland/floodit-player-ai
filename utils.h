@@ -18,7 +18,8 @@ struct avaliador {
 };
 
 struct celula {
-    int cor, counted, status, counted2;
+//    int cor, counted, status, counted2, bloco, peso;
+    int cor, counted, status, counted2, bloco, peso; // Nao to alocando direito em algum lugar...
     vertice v;
 };
 

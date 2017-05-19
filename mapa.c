@@ -132,7 +132,11 @@ void mostra_mapa_cor(tmapa *m, int shouldClear) {
     }
     printf("\n");
     for(i = 0; i < m->nlinhas; i++) {
-        printf("%d: ", i);
+        if(m->nlinhas && i < 10) {
+            printf(" %d: ", i);
+        } else {
+            printf("%d: ", i);
+        }
         for(j = 0; j < m->ncolunas; j++)
             if(m->ncores > 10)
 	printf("%s%02d%s ", cor_ansi[m->mapa[ID(i,j)]->cor], m->mapa[ID(i,j)]->cor, cor_ansi[0]);
@@ -166,6 +170,22 @@ void mostra_mapa_status(tmapa *m) {
     }
     puts("");
 }
+
+/*void mostra_mapa_blocos(tmapa *m) {
+    int i, j;
+
+    clear();
+
+    printf("Linhas: %d Colunas: %d Cores: %d\n\n", m->nlinhas, m->ncolunas, m->ncores);
+    for(i = 0; i < m->nlinhas; i++) {
+        for(j = 0; j < m->ncolunas; j++)
+            if(m->ncores > 10)
+	printf("%02d ", m->mapa[ID(i,j)]->bloco);
+            else
+	printf("%d ", m->mapa[ID(i,j)]->bloco);
+        printf("\n");
+    }
+}*/
 
 void pinta(tmapa *m, int l, int c, int fundo, int cor) {
     m->mapa[ID(l,c)]->cor = cor;
