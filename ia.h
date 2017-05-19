@@ -5,7 +5,13 @@
 #include "mapa.h"
 #include "grafo.h"
 
-int callCount = 0, Count;
+//int callCount = 0, Count, Nblocos, *Restantes, *Pesos;
+int callCount = 0, Count, Nblocos;
+bloco *Bloco;
+
+typedef struct {
+    int restante, peso;
+} bloco;
 
 int jogada_random(tmapa m);
 

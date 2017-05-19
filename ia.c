@@ -8,6 +8,9 @@
 #include "mapa.h"
 #include "grafo.h"
 
+#define MAIOR_PESO 10 // Provavelmente eu quero fazer alguma conta a partir de Nblocos
+#define DECR_PESO 1
+
 #define STEP_D 2
 
 #define RANDOM 0
@@ -402,9 +405,40 @@ int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas) {
                 }
             }
             ++py;
+            ++Nblocos;
         }
         px += py;
         py = 0;
+    }
+
+    void conta_blocos(tmapa *m) { // Não tesatdo
+        for(i=0; i<Nblocos; ++i) {
+            Bloco[i].restante = 0;
+            //Restantes[i] = 0;
+        }
+        for(i=0; i<m->tam; ++i) {
+            if(m->mapa[i]->status != STATUS_MAIN) {
+                //Restantes[m->mapa[i]->bloco]++;
+                Blocos[m->mapa[i]->bloco].restante++;
+            }
+        }
+    }
+
+    // Não tesatdo
+    void define_pesos_blocos() {
+        int i, m, peso = MAIOR_PESO;
+        int restantes[Nblocos];
+
+        for(i=0; i<Nblocos; ++i) {
+            restantes[i] = Bloco[i].restante;
+        }
+
+        for(i=0; i<Nblocos; ++i) {
+            m = maior_restante(Bloco); //
+            Bloco[m].peso = peso;
+            Bloco[m].restante = -1;
+            peso -= DECR_PESO;
+        }
     }
 }*/
 
@@ -425,6 +459,14 @@ int main(int argc, char **argv) {
     m.tam = m.nlinhas * m.ncolunas;
 
     Algoritmo = atoi(argv[4]);
+    //Nblocos = 0;
+    //define_n_blocos(&m, ceil( (double) m.nlinhas / STEP_D), ceil( (double) m.ncolunas / STEP_D)); // Funciona!
+    //Restantes = (int*) malloc(Nblocos * sizeof(int));
+    //if(!Restantes) printf("Erro mallocando Restantes.\n");
+    //Pesos = (int*) malloc(Nblocos * sizeof(int));
+    //if(!Pesos) printf("Erro mallocando Pesos.\n");
+    //Bloco = (bloco*) malloc(Nblocos * sizeof(bloco));
+    //if(!Pesos) printf("Erro mallocando Bloco.\n");
 
     VerticeID = 0;
     Njogadas = 0;
@@ -441,7 +483,6 @@ int main(int argc, char **argv) {
 
     g = cria_grafos(&m);
 
-    //define_n_blocos(&m, ceil( (double) m.nlinhas / STEP_D), ceil( (double) m.ncolunas / STEP_D)); // Funciona!
     //mostra_mapa_blocos(&m);
 
     //mostra_mapa_cor(&m, 0);
