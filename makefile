@@ -5,7 +5,7 @@ CFLAGS=-std=c99
 all: ia backtrack
 
 ia: ia.c mapa.o utils.o grafo.o
-	$(CC) -lm -g -o $@ $^
+	$(CC) -g -o $@ $^ -lm
 
 clean :
 	$(RM) ia *.o

@@ -21,7 +21,7 @@ void gera_mapa(tmapa *m, int semente) {
 
     m->mapa = (celula *) malloc(m->nlinhas * m->ncolunas * sizeof(celula));
     if(!m->mapa) {
-        puts("(jogada_otima) Erro de malloc.");
+        puts("(gera_mapa) Erro de malloc em mapa.");
         exit(1);
     }
 
@@ -29,7 +29,7 @@ void gera_mapa(tmapa *m, int semente) {
         for(j = 0; j < m->ncolunas; j++) {
             m->mapa[ID(i,j)] = (celula) malloc(sizeof(struct celula));
             if(!m->mapa[ID(i,j)]) {
-                puts("(jogada_otima) Erro de malloc.");
+                puts("(gera_mapa) Erro de malloc em mapa[i].");
                 exit(1);
             }
             m->mapa[ID(i,j)]->cor = 1 + rand() % m->ncores;

@@ -17,6 +17,7 @@
 #define GULOSO 1
 #define GULOSO_INT_EXT 2
 #define GULOSO_INT_EXT_MOVE 3
+#define PRIORITY_BLOCK 4
 
 int Algoritmo = GULOSO_INT_EXT_MOVE;
 
@@ -52,17 +53,11 @@ int guloso_fronteira_externa(tmapa *m) {
             cores[m->mapa[i]->cor - FIRST_COLOR].n_ext++;
         } else if(m->mapa[i]->status == STATUS_F_INT) {
             cores[m->mapa[i]->cor - FIRST_COLOR].n_int++;
-            // Aqui soh to contando quantos tem na fronteira interna. Não vou usar pra nada a menos que empate.
         }
     }
 
     for(i=0; i<m->ncores; ++i) {
         if(cores[best].n_ext < cores[i].n_ext || (cores[best].n_ext == cores[i].n_ext && cores[best].n_int < cores[i].n_int)) {
-/*
-            if(cores[best].n_ext == cores[i].n_ext && cores[best].n_int < cores[i].n_int) {
-                printf("DESEMPATE ACIRRAAAAADOOO!\n");
-            }
-*/
             best = i;
         }
     }
@@ -282,6 +277,15 @@ int proxima_jogada(tmapa m, grafo g) {
         return r;
     }*/
 
+    if(Algoritmo == PRIORITY_BLOCK) {
+        conta_blocos(&m);
+        define_pesos_blocos();
+        r = bloco_calcula_cor(&m);
+        /*mostra_mapa_cor(&m, 0);
+        printf("R = %d\n", r);*/
+        return r;
+    }
+
     // Algoritmo 2: Guloso fronteira int/ext deopis de andar até algum ponto.
     if(Algoritmo == GULOSO_INT_EXT_MOVE) {
         static int executado = 0;
@@ -300,6 +304,7 @@ int proxima_jogada(tmapa m, grafo g) {
                 //mostra_mapa_cor(&m, 0);
             }
             executado = 1;
+
         }
         return guloso_fronteira_externa(&m);
     }
@@ -375,14 +380,7 @@ int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas) {
         a = (aresta) conteudo(elem);
         w = a->vs;
     }
-/*
-    if(i < 0) ++i;
 
-    if(i != 0) {
-        printf("Vetor de jogadas não começa no 0, começa em %d\n", i);
-    }
-    return i;
-*/
     if(i != -1) {
         puts("Funcao menor_caminho pode ter problema no i. Conferir please.");
     }
@@ -444,17 +442,28 @@ int bloco_calcula_cor(tmapa *m) {
     int i, best = 0;
     avaliador cores[m->ncores];
     for(i=0; i<m->ncores; ++i) {
+        cores[i].cor = i;
         cores[i].n_ext = 0;
         cores[i].n_int = 0;
     }
+    zera_status(m);
+
+    zera_counted(m);
+    flood_set_status(m, 0, 0, m->mapa[0]->cor, STATUS_MAIN);
+
+    zera_counted2(m);
+    define_fronteira_vizinhos(m, 0, 0);
+
+    zera_counted(m);
+    define_front_int_ext(m);
+
     for(i=0; i<m->tam; ++i) {
         if(m->mapa[i]->status == STATUS_F_EXT) {
-            cores[m->mapa[i]->cor - FIRST_COLOR].n_ext += m->mapa[i]->peso;
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_ext += Bloco[m->mapa[i]->bloco].peso;
         } else if(m->mapa[i]->status == STATUS_F_INT) {
-            cores[m->mapa[i]->cor - FIRST_COLOR].n_int += m->mapa[i]->peso;
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_int += Bloco[m->mapa[i]->peso].peso;
         }
     }
-
 
     for(i=0; i<m->ncores; ++i) {
         if(cores[best].n_ext < cores[i].n_ext || (cores[best].n_ext == cores[i].n_ext && cores[best].n_int < cores[i].n_int)) {
@@ -482,14 +491,6 @@ int main(int argc, char **argv) {
     m.tam = m.nlinhas * m.ncolunas;
 
     Algoritmo = atoi(argv[4]);
-    //Nblocos = 0;
-    //define_n_blocos(&m, ceil( (double) m.nlinhas / STEP_D), ceil( (double) m.ncolunas / STEP_D)); // Funciona!
-    //Restantes = (int*) malloc(Nblocos * sizeof(int));
-    //if(!Restantes) printf("Erro mallocando Restantes.\n");
-    //Pesos = (int*) malloc(Nblocos * sizeof(int));
-    //if(!Pesos) printf("Erro mallocando Pesos.\n");
-    //Bloco = (bloco*) malloc(Nblocos * sizeof(bloco));
-    //if(!Pesos) printf("Erro mallocando Bloco.\n");
 
     VerticeID = 0;
     Njogadas = 0;
@@ -506,6 +507,20 @@ int main(int argc, char **argv) {
 
     g = cria_grafos(&m);
 
+    if(Algoritmo == PRIORITY_BLOCK) {
+        Nblocos = 0;
+        define_n_blocos(&m, ceil( (double) m.nlinhas / STEP_D), ceil( (double) m.ncolunas / STEP_D)); // Funciona!
+        //Restantes = (int*) malloc(Nblocos * sizeof(int));
+        //if(!Restantes) printf("Erro mallocando Restantes.\n");
+        //Pesos = (int*) malloc(Nblocos * sizeof(int));
+        //if(!Pesos) printf("Erro mallocando Pesos.\n");
+        Bloco = (bloco*) malloc(Nblocos * sizeof(bloco));
+        if(!Bloco) {
+            printf("Erro mallocando Bloco.\n");
+            exit(1);
+        }
+    }
+
     //mostra_mapa_blocos(&m);
 
     //mostra_mapa_cor(&m, 0);
@@ -521,7 +536,7 @@ int main(int argc, char **argv) {
 
         //mostra_mapa_cor(&m, 0);
 
-        if(Njogadas > 20000) {
+        if(Njogadas > 10) {
             printf("Acho que loop infinito. Quitando...\n");
             exit(1);
         }
