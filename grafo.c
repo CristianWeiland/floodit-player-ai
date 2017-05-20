@@ -74,7 +74,7 @@ void cria_arestas(tmapa *m, grafo g) {
     int len = g->len * sizeof(vertice);
     l = (vertice *) malloc(len);
     if(!l) {
-        printf("(cria_arestas) Erro de malloc. Pedindo %ld memoria.G->len = %d, size = %d\n", len, g->len, sizeof(vertice));
+        printf("(cria_arestas) Erro de malloc. Pedindo %d memoria.G->len = %d, size = %d\n", len, g->len, sizeof(vertice));
         exit(1);
     }
 

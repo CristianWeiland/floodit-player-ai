@@ -390,7 +390,7 @@ int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas) {
 }
 
 /* Blocos */
-/*void define_n_blocos(tmapa *m, int stepx, int stepy) {
+void define_n_blocos(tmapa *m, int stepx, int stepy) {
     int i0, j0, i, j, px, py, mini, minj;
 
     px = py = 0;
@@ -410,37 +410,60 @@ int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas) {
         px += py;
         py = 0;
     }
+}
 
-    void conta_blocos(tmapa *m) { // Não tesatdo
-        for(i=0; i<Nblocos; ++i) {
-            Bloco[i].restante = 0;
-            //Restantes[i] = 0;
+void conta_blocos(tmapa *m) {
+    int i;
+    for(i=0; i<Nblocos; ++i) {
+        Bloco[i].restante = 0;
+    }
+    for(i=0; i<m->tam; ++i) {
+        if(m->mapa[i]->status != STATUS_MAIN) {
+            Bloco[m->mapa[i]->bloco].restante++;
         }
-        for(i=0; i<m->tam; ++i) {
-            if(m->mapa[i]->status != STATUS_MAIN) {
-                //Restantes[m->mapa[i]->bloco]++;
-                Blocos[m->mapa[i]->bloco].restante++;
-            }
+    }
+}
+
+void define_pesos_blocos() {
+    int i, m, peso = MAIOR_PESO;
+    int restantes[Nblocos];
+
+    for(i=0; i<Nblocos; ++i) {
+        restantes[i] = Bloco[i].restante;
+    }
+
+    for(i=0; i<Nblocos; ++i) {
+        m = maior_restante(restantes, Nblocos);
+        Bloco[m].peso = peso;
+        restantes[m] = -1;
+        peso -= DECR_PESO;
+    }
+}
+
+int bloco_calcula_cor(tmapa *m) {
+    int i, best = 0;
+    avaliador cores[m->ncores];
+    for(i=0; i<m->ncores; ++i) {
+        cores[i].n_ext = 0;
+        cores[i].n_int = 0;
+    }
+    for(i=0; i<m->tam; ++i) {
+        if(m->mapa[i]->status == STATUS_F_EXT) {
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_ext += m->mapa[i]->peso;
+        } else if(m->mapa[i]->status == STATUS_F_INT) {
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_int += m->mapa[i]->peso;
         }
     }
 
-    // Não tesatdo
-    void define_pesos_blocos() {
-        int i, m, peso = MAIOR_PESO;
-        int restantes[Nblocos];
 
-        for(i=0; i<Nblocos; ++i) {
-            restantes[i] = Bloco[i].restante;
-        }
-
-        for(i=0; i<Nblocos; ++i) {
-            m = maior_restante(Bloco); //
-            Bloco[m].peso = peso;
-            Bloco[m].restante = -1;
-            peso -= DECR_PESO;
+    for(i=0; i<m->ncores; ++i) {
+        if(cores[best].n_ext < cores[i].n_ext || (cores[best].n_ext == cores[i].n_ext && cores[best].n_int < cores[i].n_int)) {
+            best = i;
         }
     }
-}*/
+
+    return best + FIRST_COLOR;
+}
 
 int main(int argc, char **argv) {
     int cor;

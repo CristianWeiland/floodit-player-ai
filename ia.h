@@ -9,10 +9,6 @@
 int callCount = 0, Count, Nblocos;
 bloco *Bloco;
 
-typedef struct {
-    int restante, peso;
-} bloco;
-
 int jogada_random(tmapa m);
 
 int guloso_fronteira_externa(tmapa *m);
@@ -29,5 +25,10 @@ int guloso(tmapa m, grafo g);
 int* quantos_faltam(tmapa *m, grafo g, int *ret);
 int jogada_otima(tmapa *m, grafo g);
 int proxima_jogada(tmapa m, grafo g);
+
+void define_n_blocos(tmapa *m, int stepx, int stepy);
+void conta_blocos(tmapa *m);
+void define_pesos_blocos();
+int bloco_calcula_cor(tmapa *m);
 
 #endif

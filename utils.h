@@ -5,6 +5,7 @@
 
 int VerticeID, TamMatriz;
 
+typedef struct bloco bloco;
 typedef struct avaliador avaliador;
 typedef struct celula *celula;
 typedef struct no *no;
@@ -12,6 +13,10 @@ typedef struct lista *lista;
 typedef struct grafo *grafo;
 typedef struct vertice *vertice;
 typedef struct aresta *aresta;
+
+struct bloco {
+    int restante, peso;
+};
 
 struct avaliador {
     int cor, n_int, n_ext;
@@ -96,6 +101,8 @@ lista vertices_grafo(grafo g);
 void imprime_vertice(void* param);
 void imprime_lista_vertices(lista l);
 void imprime_lista_arestas(lista l);
+
+int maior_restante(int *restantes, int tam);
 
 /*
 //-----------------------------------------------------------------------------

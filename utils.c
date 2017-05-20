@@ -343,3 +343,12 @@ int comp(const void * elem1, const void * elem2) {
     if (f < s) return  1;
     return 0;
 }
+
+int maior_restante(int *restantes, int tam) {
+    int i, maior = 0;
+    for(i=0; i<tam; ++i) {
+        if(restantes[i] > restantes[maior])
+            maior = i;
+    }
+    return maior;
+}
