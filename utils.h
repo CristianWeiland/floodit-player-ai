@@ -5,6 +5,8 @@
 
 int VerticeID, TamMatriz;
 
+int Count, Nblocos;
+
 typedef struct bloco bloco;
 typedef struct avaliador avaliador;
 typedef struct celula *celula;
