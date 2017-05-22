@@ -10,19 +10,16 @@
 #include "fronteira.h"
 #include "bloco.h"
 
-#define STEP_D 2
+#define GULOSO 0
+#define GULOSO_INT_EXT 1
+#define GULOSO_INT_EXT_MOVE 2
+#define PRIORITY_BLOCK_1 3
+#define PRIORITY_BLOCK_2 4
+#define PRIORITY_BLOCK_3 5
 
-#define RANDOM 0
-#define GULOSO 1
-#define GULOSO_INT_EXT 2
-#define GULOSO_INT_EXT_MOVE 3
-#define PRIORITY_BLOCK 4
+#define N_ALGORITMOS 6 // Eu to usando dois passos diferentes pro blocos.
 
 int Algoritmo = GULOSO_INT_EXT_MOVE;
-
-int jogada_random(tmapa m) {
-    return rand() % m.ncores + 1;
-}
 
 int guloso(tmapa m, grafo g) {
     // Guloso olhando o grafo.
@@ -113,16 +110,14 @@ int jogada_otima(tmapa *m, grafo g) {
 
 int proxima_jogada(tmapa m, grafo g) {
     int r = jogada_otima(&m, g);
-    /*if(r != -1) {
+    if(r != -1) {
         return r;
-    }*/
+    }
 
-    if(Algoritmo == PRIORITY_BLOCK) {
+    if(Algoritmo == PRIORITY_BLOCK_1 || Algoritmo == PRIORITY_BLOCK_2 || Algoritmo == PRIORITY_BLOCK_3) {
         conta_blocos(&m);
         define_pesos_blocos();
         r = bloco_calcula_cor(&m);
-        /*mostra_mapa_cor(&m, 0);
-        printf("R = %d\n", r);*/
         return r;
     }
 
@@ -136,12 +131,8 @@ int proxima_jogada(tmapa m, grafo g) {
             first = menor_caminho(&m, g, v, &jogadas);
             last = first + v->d;
             for(i=first; i<last; ++i) {
-                //printf("First = %d, last = %d, jogadas[%d] = %d\n", first, last, i, jogadas[i]);
-                //mostra_mapa_cor(&m, 1);
                 pinta_mapa(&m, jogadas[i]);
                 ++Njogadas;
-                //getchar();
-                //mostra_mapa_cor(&m, 0);
             }
             executado = 1;
 
@@ -158,21 +149,93 @@ int proxima_jogada(tmapa m, grafo g) {
     if(Algoritmo == GULOSO) {
         return guloso(m, g);
     }
+}
 
-    // Metodo 1: Random
-    if(Algoritmo == RANDOM) {
-        return jogada_random(m);
+int resolve(tmapa *m, int algoritmo) {
+    int cor, stepx, stepy, isBlock = 0;
+    grafo g;
+
+    g = cria_grafos(m);
+
+    Njogadas = 0;
+    Algoritmo = algoritmo;
+
+    if(algoritmo == PRIORITY_BLOCK_1) {
+        stepx = STEP_X_1;
+        stepy = STEP_Y_1;
+        DecrPeso = DECR_PESO_1;
+        MaiorPeso = MAIOR_PESO_1;
+        isBlock = 1;
+    } else if(algoritmo == PRIORITY_BLOCK_2) {
+        stepx = STEP_X_2;
+        stepy = STEP_Y_2;
+        DecrPeso = DECR_PESO_2;
+        MaiorPeso = MAIOR_PESO_2;
+        isBlock = 1;
+    } else if(algoritmo == PRIORITY_BLOCK_3) {
+        stepx = STEP_X_3;
+        stepy = STEP_Y_3;
+        DecrPeso = DECR_PESO_3;
+        MaiorPeso = MAIOR_PESO_3;
+        isBlock = 1;
     }
+
+    if(isBlock) {
+        Nblocos = 0;
+        define_n_blocos(m, ceil( (double) m->nlinhas / stepx), ceil( (double) m->ncolunas / stepy));
+        Bloco = (bloco*) malloc(Nblocos * sizeof(bloco));
+        if(!Bloco) {
+            printf("Erro mallocando Bloco.\n");
+            exit(1);
+        }
+    }
+
+    while(!acabou(*m)) {
+        cor = proxima_jogada(*m, g);
+        pinta_mapa(m, cor);
+        destroi_grafo(g);
+        g = cria_grafos(m); // Nao posso comentar isso enquanto eu tiver usando o jogada_otima!
+        ++Njogadas;
+
+        if(Njogadas > 10000) {
+            printf("Acho que loop infinito. Quitando...\n");
+            exit(1);
+        }
+    }
+
+    if(isBlock) {
+        free(Bloco);
+    }
+    destroi_grafo(g);
+    destroi_tmapa(*m, 0);
+
+    return Njogadas;
+}
+
+void joga(tmapa *m) {
+    tmapa *n;
+    int b, i, res[N_ALGORITMOS];
+
+    b = 0;
+
+    for(i=0; i<N_ALGORITMOS; ++i) {
+        n = copia_tmapa(m);
+        res[i] = resolve(n, i);
+        if(res[i] < res[b]) {
+            b = i;
+        }
+        printf("Algoritmo %d resolveu em %d jogadas.\n", i, res[i]);
+    }
+
+    printf("O melhor algoritmo foi: %d, em %d jogadas.\n", b, res[b]);
 }
 
 int main(int argc, char **argv) {
-    int cor;
+    int cor, semente;
     tmapa m;
-    int semente;
-    grafo g;
 
-    if(argc < 5 || argc > 6) {
-        printf("uso: %s <numero_de_linhas> <numero_de_colunas> <numero_de_cores> <algoritmo> [<semente_aleatoria>]\n", argv[0]);
+    if(argc < 4 || argc > 5) {
+        printf("uso: %s <numero_de_linhas> <numero_de_colunas> <numero_de_cores> [<semente_aleatoria>]\n", argv[0]);
         exit(1);
     }
 
@@ -181,63 +244,20 @@ int main(int argc, char **argv) {
     m.ncores = atoi(argv[3]);
     m.tam = m.nlinhas * m.ncolunas;
 
-    Algoritmo = atoi(argv[4]);
-
     VerticeID = 0;
     Njogadas = 0;
     Linhas = m.nlinhas;
     Colunas = m.ncolunas;
     TamMatriz = Linhas * Colunas;
 
-    if(argc == 6)
-        semente = atoi(argv[5]);
+    if(argc == 5)
+        semente = atoi(argv[4]);
     else
         semente = -1;
 
     gera_mapa(&m, semente);
 
-    g = cria_grafos(&m);
-
-    if(Algoritmo == PRIORITY_BLOCK) {
-        Nblocos = 0;
-        define_n_blocos(&m, ceil( (double) m.nlinhas / STEP_D), ceil( (double) m.ncolunas / STEP_D)); // Funciona!
-        Bloco = (bloco*) malloc(Nblocos * sizeof(bloco));
-        if(!Bloco) {
-            printf("Erro mallocando Bloco.\n");
-            exit(1);
-        }
-    }
-
-    //mostra_mapa_blocos(&m);
-
-    //mostra_mapa_cor(&m, 0);
-    //escreve_grafo(stdout, g);
-
-    while(!acabou(m)) {
-        cor = proxima_jogada(m, g);
-        pinta_mapa(&m, cor);
-        // Precisa destruir o grafo g!
-        destroi_grafo(g);
-        g = cria_grafos(&m); // Nao posso comentar isso enquanto eu tiver usando o jogada_otima!
-        ++Njogadas;
-
-        //mostra_mapa_cor(&m, 0);
-
-        if(Njogadas > 100) {
-            printf("Acho que loop infinito. Quitando...\n");
-            exit(1);
-        }
-    }
-
-    //mostra_mapa_cor(&m, 1); // para mostrar sem cores use mostra_mapa(&m);
-
-    printf("%d\n", Njogadas);
-
-    if(Algoritmo == PRIORITY_BLOCK) {
-        free(Bloco);
-    }
-    destroi_grafo(g);
-    destroi_tmapa(m, 0);
+    joga(&m);
 
     return 0;
 }

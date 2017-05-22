@@ -108,7 +108,7 @@ void conta_blocos(tmapa *m) {
 }
 
 void define_pesos_blocos() {
-    int i, m, peso = MAIOR_PESO;
+    int i, m, peso = MaiorPeso;
     int restantes[Nblocos];
 
     for(i=0; i<Nblocos; ++i) {
@@ -119,7 +119,7 @@ void define_pesos_blocos() {
         m = maior_restante(restantes, Nblocos);
         Bloco[m].peso = peso;
         restantes[m] = -1;
-        peso -= DECR_PESO;
+        peso -= DecrPeso;
     }
 }
 
@@ -135,10 +135,11 @@ int bloco_calcula_cor(tmapa *m) {
     prepara_fronteiras(m);
 
     for(i=0; i<m->tam; ++i) {
+        //printf("Status = %d, Bloco = %d, Peso = %d\n", m->mapa[i]->status, m->mapa[i]->bloco, Bloco[m->mapa[i]->bloco].peso);
         if(m->mapa[i]->status == STATUS_F_EXT) {
             cores[m->mapa[i]->cor - FIRST_COLOR].n_ext += Bloco[m->mapa[i]->bloco].peso;
         } else if(m->mapa[i]->status == STATUS_F_INT) {
-            cores[m->mapa[i]->cor - FIRST_COLOR].n_int += Bloco[m->mapa[i]->peso].peso;
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_int += Bloco[m->mapa[i]->bloco].peso;
         }
     }
 

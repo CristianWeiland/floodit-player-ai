@@ -171,21 +171,22 @@ void mostra_mapa_status(tmapa *m) {
     puts("");
 }
 
-/*void mostra_mapa_blocos(tmapa *m) {
+void mostra_mapa_param(tmapa *m, int print) {
     int i, j;
-
-    clear();
 
     printf("Linhas: %d Colunas: %d Cores: %d\n\n", m->nlinhas, m->ncolunas, m->ncores);
     for(i = 0; i < m->nlinhas; i++) {
         for(j = 0; j < m->ncolunas; j++)
-            if(m->ncores > 10)
-	printf("%02d ", m->mapa[ID(i,j)]->bloco);
-            else
-	printf("%d ", m->mapa[ID(i,j)]->bloco);
+            if(print == PRINT_COR) {
+            	printf("%d ", m->mapa[ID(i,j)]->cor);
+            } else if(print == PRINT_BLOCO) {
+            	printf("%d ", m->mapa[ID(i,j)]->bloco);
+            } else if(print == PRINT_STATUS) {
+            	printf("%d ", m->mapa[ID(i,j)]->status);
+            }
         printf("\n");
     }
-}*/
+}
 
 void pinta(tmapa *m, int l, int c, int fundo, int cor) {
     m->mapa[ID(l,c)]->cor = cor;
