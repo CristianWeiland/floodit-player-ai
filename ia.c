@@ -16,8 +16,9 @@
 #define PRIORITY_BLOCK_1 3
 #define PRIORITY_BLOCK_2 4
 #define PRIORITY_BLOCK_3 5
+#define PRIORITY_BLOCK_MOVE 6
 
-#define N_ALGORITMOS 6 // Eu to usando dois passos diferentes pro blocos.
+#define N_ALGORITMOS 7 // Eu to usando dois passos diferentes pro blocos.
 
 int Algoritmo = GULOSO_INT_EXT_MOVE;
 
@@ -114,29 +115,30 @@ int proxima_jogada(tmapa m, grafo g) {
         return r;
     }
 
-    if(Algoritmo == PRIORITY_BLOCK_1 || Algoritmo == PRIORITY_BLOCK_2 || Algoritmo == PRIORITY_BLOCK_3) {
+    if(Algoritmo == PRIORITY_BLOCK_1 || Algoritmo == PRIORITY_BLOCK_2 || Algoritmo == PRIORITY_BLOCK_3 || Algoritmo == PRIORITY_BLOCK_MOVE) {
+        prepara_fronteiras(&m);
         conta_blocos(&m);
         define_pesos_blocos();
         r = bloco_calcula_cor(&m);
         return r;
     }
 
+    if(AndaSudeste) {
+        int i, first, last, *jogadas, x1, x2, y1, y2;
+        bloco_baixo_direita(&x1, &y1, &x2, &y2);
+        vertice v = vertice_menor_distancia(&m, x1, y1, x2, y2);
+        first = menor_caminho(&m, g, v, &jogadas);
+        last = first + v->d;
+        for(i=first; i<last; ++i) {
+            pinta_mapa(&m, jogadas[i]);
+            ++Njogadas;
+        }
+        free(jogadas);
+        AndaSudeste = 0;
+    }
+
     // Algoritmo 2: Guloso fronteira int/ext deopis de andar até algum ponto.
     if(Algoritmo == GULOSO_INT_EXT_MOVE) {
-        static int executado = 0;
-        if(!executado) {
-            int i, first, last, *jogadas, x1, x2, y1, y2;
-            bloco_baixo_direita(&x1, &y1, &x2, &y2);
-            vertice v = vertice_menor_distancia(&m, x1, y1, x2, y2);
-            first = menor_caminho(&m, g, v, &jogadas);
-            last = first + v->d;
-            for(i=first; i<last; ++i) {
-                pinta_mapa(&m, jogadas[i]);
-                ++Njogadas;
-            }
-            executado = 1;
-
-        }
         return guloso_fronteira_externa(&m);
     }
 
@@ -160,7 +162,7 @@ int resolve(tmapa *m, int algoritmo) {
     Njogadas = 0;
     Algoritmo = algoritmo;
 
-    if(algoritmo == PRIORITY_BLOCK_1) {
+    if(algoritmo == PRIORITY_BLOCK_1 || algoritmo == PRIORITY_BLOCK_MOVE) {
         stepx = STEP_X_1;
         stepy = STEP_Y_1;
         DecrPeso = DECR_PESO_1;
@@ -208,6 +210,7 @@ int resolve(tmapa *m, int algoritmo) {
     }
     destroi_grafo(g);
     destroi_tmapa(*m, 0);
+    free(m);
 
     return Njogadas;
 }
@@ -220,14 +223,17 @@ void joga(tmapa *m) {
 
     for(i=0; i<N_ALGORITMOS; ++i) {
         n = copia_tmapa(m);
+        if(i == GULOSO_INT_EXT_MOVE || i == PRIORITY_BLOCK_MOVE)
+            AndaSudeste = 1;
         res[i] = resolve(n, i);
         if(res[i] < res[b]) {
             b = i;
         }
-        printf("Algoritmo %d resolveu em %d jogadas.\n", i, res[i]);
+        //printf("Algoritmo %d resolveu em %d jogadas.\n", i, res[i]);
     }
 
-    printf("O melhor algoritmo foi: %d, em %d jogadas.\n", b, res[b]);
+    //printf("O melhor algoritmo foi: %d, em %d jogadas.\n", b, res[b]);
+    printf("%d", b);
 }
 
 int main(int argc, char **argv) {
@@ -244,8 +250,9 @@ int main(int argc, char **argv) {
     m.ncores = atoi(argv[3]);
     m.tam = m.nlinhas * m.ncolunas;
 
-    VerticeID = 0;
     Njogadas = 0;
+    VerticeID = 0;
+    AndaSudeste = 0;
     Linhas = m.nlinhas;
     Colunas = m.ncolunas;
     TamMatriz = Linhas * Colunas;
@@ -258,6 +265,8 @@ int main(int argc, char **argv) {
     gera_mapa(&m, semente);
 
     joga(&m);
+
+    destroi_tmapa(m, 0);
 
     return 0;
 }

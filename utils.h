@@ -3,7 +3,7 @@
 
 #define PESO_DEFAULT 0
 
-int VerticeID, TamMatriz;
+int VerticeID, TamMatriz, AndaSudeste;
 
 int Count, Nblocos;
 

@@ -132,7 +132,7 @@ int bloco_calcula_cor(tmapa *m) {
         cores[i].n_int = 0;
     }
 
-    prepara_fronteiras(m);
+    //prepara_fronteiras(m);
 
     for(i=0; i<m->tam; ++i) {
         //printf("Status = %d, Bloco = %d, Peso = %d\n", m->mapa[i]->status, m->mapa[i]->bloco, Bloco[m->mapa[i]->bloco].peso);
