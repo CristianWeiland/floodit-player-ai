@@ -8,3 +8,6 @@ backtrack
 test
 *.json
 database_5_5_5.json
+gera_mapa
+gera_mapa.c
+flood*

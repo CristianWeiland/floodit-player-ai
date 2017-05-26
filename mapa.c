@@ -83,15 +83,15 @@ tmapa* copia_tmapa(tmapa *m) {
     return n;
 }
 
-void destroi_tmapa(tmapa m, int destruir_vertices) {
+void destroi_tmapa(tmapa *m, int destruir_vertices) {
     int i;
-    for(i=0; i<m.tam; ++i) {
-        if(destruir_vertices && m.mapa[i]->v) {
-            free(m.mapa[i]->v);
+    for(i=0; i<m->tam; ++i) {
+        if(destruir_vertices && m->mapa[i]->v) {
+            free(m->mapa[i]->v);
         }
-        free(m.mapa[i]);
+        free(m->mapa[i]);
     }
-    free(m.mapa);
+    free(m->mapa);
 }
 
 void mostra_mapa(tmapa *m) {
@@ -179,8 +179,6 @@ void mostra_mapa_param(tmapa *m, int print) {
         for(j = 0; j < m->ncolunas; j++)
             if(print == PRINT_COR) {
             	printf("%d ", m->mapa[ID(i,j)]->cor);
-            } else if(print == PRINT_BLOCO) {
-            	printf("%d ", m->mapa[ID(i,j)]->bloco);
             } else if(print == PRINT_STATUS) {
             	printf("%d ", m->mapa[ID(i,j)]->status);
             }

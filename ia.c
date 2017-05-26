@@ -102,8 +102,7 @@ int resolve(tmapa *m) {
         }
     }
 
-    destroi_tmapa(*m, 0);
-    free(m);
+    destroi_tmapa(m, 0);
 
     return Njogadas;
 }
@@ -136,9 +135,7 @@ int main(int argc, char **argv) {
 
     resolve(&m);
 
-    printf("0");
-
-    destroi_tmapa(m, 0);
+    printf("0\n");
 
     return 0;
 }

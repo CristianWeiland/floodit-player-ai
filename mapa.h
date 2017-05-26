@@ -35,7 +35,7 @@ int ID(int i, int j);
 void gera_mapa(tmapa *m, int semente);
 void carrega_mapa(tmapa *m);
 tmapa* copia_tmapa(tmapa *m);
-void destroi_tmapa(tmapa m, int destruir_vertices);
+void destroi_tmapa(tmapa *m, int destruir_vertices);
 void mostra_mapa(tmapa *m);
 void mostra_mapa_cor(tmapa *m, int shouldClear);
 void mostra_mapa_status(tmapa *m);

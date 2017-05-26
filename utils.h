@@ -16,16 +16,12 @@ typedef struct grafo *grafo;
 typedef struct vertice *vertice;
 typedef struct aresta *aresta;
 
-struct bloco {
-    int restante, peso;
-};
-
 struct avaliador {
     int cor, n_int, n_ext;
 };
 
 struct celula {
-    int cor, counted, status, counted2, bloco;
+    int cor, counted, status, counted2, pintado;
     vertice v;
 };
 
