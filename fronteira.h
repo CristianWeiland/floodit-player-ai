@@ -7,5 +7,6 @@ void define_fronteira_vizinhos(tmapa *m, int i, int j);
 void define_front_int_ext(tmapa *m);
 int tipo_fronteira(tmapa *m, int i, int j, int cor);
 int checa_condicoes(tmapa *m, int i, int j, int cor);
+int guloso_fronteira_externa_com_otima(tmapa *m);
 
 #endif

@@ -22,38 +22,6 @@ void prepara_fronteiras(tmapa *m) {
     define_front_int_ext(m);
 }
 
-int guloso_fronteira_externa(tmapa *m) {
-    // Guloso olhando soh matriz.
-    int i, best;
-    avaliador cores[m->ncores];
-
-    best = 0;
-    for(i=0; i<m->ncores; ++i) {
-        cores[i].cor = i;
-        cores[i].n_int = 0;
-        cores[i].n_ext = 0;
-    }
-
-    prepara_fronteiras(m);
-
-    // Agora que eu tenho as fronteiras devidamente definidas, tenho que contar quantos de cada cor posso eliminar.
-    for(i=0; i<m->tam; ++i) {
-        if(m->mapa[i]->status == STATUS_F_EXT) {
-            cores[m->mapa[i]->cor - FIRST_COLOR].n_ext++;
-        } else if(m->mapa[i]->status == STATUS_F_INT) {
-            cores[m->mapa[i]->cor - FIRST_COLOR].n_int++;
-        }
-    }
-
-    for(i=0; i<m->ncores; ++i) {
-        if(cores[best].n_ext < cores[i].n_ext || (cores[best].n_ext == cores[i].n_ext && cores[best].n_int < cores[i].n_int)) {
-            best = i;
-        }
-    }
-
-    return best + FIRST_COLOR;
-}
-
 void define_fronteira_vizinhos(tmapa *m, int i, int j) {
     // Vou setar com STATUS_F todo mundo da fronteira, seja interna ou externa. A ideia eh simples:
     // pra todos os vizinhos das celulas com status = STATUS_MAIN, faco um flood_set_status(STATUS_F)
@@ -89,7 +57,6 @@ void define_front_int_ext(tmapa *m) {
             if(m->mapa[ID(i,j)]->status == STATUS_F) {
                 zera_counted(m);
                 ret = tipo_fronteira(m, i, j, m->mapa[ID(i,j)]->cor);
-                //printf("Eh %d\n", ret);
                 if(ret) {
                     zera_counted(m);
                     flood_set_status(m, i, j, m->mapa[ID(i,j)]->cor, STATUS_F_INT);
@@ -115,45 +82,27 @@ int tipo_fronteira(tmapa *m, int i, int j, int cor) {
     if(m->mapa[ID(i,j)]->counted == Count) // Jah foi contado, retorna o valor 'neutro' (não atrapalha ninguém)
         return 1;
 
-    //printf("Pos = %d-%d, cor = %d, cor2 = %d\n", i, j, cor, m->mapa[ID(i,j)]->cor);
-
     m->mapa[ID(i,j)]->counted = Count;
 
     ret = checa_condicoes(m, i+1, j, cor);
-    /*
-    if(!borda(i+1,j))
-        printf("Direita (cor %d e status %d) deu %d\n", m->mapa[ID(i,j)]->cor, m->mapa[ID(i,j)]->status, ret);
-    */
     if(ret == 2)
         ret = tipo_fronteira(m, i+1, j, cor);
     if(ret == 0)
         return 0;
 
     ret = checa_condicoes(m, i-1, j, cor);
-    /*
-    if(!borda(i-1,j))
-        printf("Esquerda (cor %d e status %d) deu %d\n", m->mapa[ID(i,j)]->cor, m->mapa[ID(i,j)]->status, ret);
-    */
     if(ret == 2)
         ret = tipo_fronteira(m, i-1, j, cor);
     if(ret == 0)
         return 0;
 
     ret = checa_condicoes(m, i, j+1, cor);
-    /*
-    if(!borda(i,j+1))
-        printf("Cima (cor %d e status %d) deu %d\n", m->mapa[ID(i,j)]->cor, m->mapa[ID(i,j)]->status, ret);
-    */
     if(ret == 2)
         ret = tipo_fronteira(m, i, j+1, cor);
     if(ret == 0)
         return 0;
 
     ret = checa_condicoes(m, i, j-1, cor);
-    /*
-    if(!borda(i,j-1))
-        printf("Baixo (cor %d e status %d) deu %d\n", m->mapa[ID(i,j)]->cor, m->mapa[ID(i,j)]->status, ret);
-    */
     if(ret == 2)
         ret = tipo_fronteira(m, i, j-1, cor);
     if(ret == 0)
@@ -170,5 +119,53 @@ int checa_condicoes(tmapa *m, int i, int j, int cor) {
     if(m->mapa[ID(i,j)]->cor == cor) // Condicao 3
         return 2;
     return 0;
+}
+
+int guloso_fronteira_externa_com_otima(tmapa *m) {
+    // Guloso olhando soh matriz.
+    int i, best, *faltam;
+    avaliador cores[m->ncores];
+
+    best = 0;
+    faltam = (int *) malloc(m->ncores * sizeof(int));
+
+    for(i=0; i<m->ncores; ++i) {
+        faltam[i] = 0;
+        cores[i].cor = i;
+        cores[i].n_int = 0;
+        cores[i].n_ext = 0;
+    }
+
+    prepara_fronteiras(m);
+
+    // Agora que eu tenho as fronteiras devidamente definidas, tenho que contar quantos de cada cor posso eliminar.
+    for(i=0; i<m->tam; ++i) {
+        if(m->mapa[i]->status == STATUS_F_EXT) {
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_ext++;
+        } else if(m->mapa[i]->status == STATUS_F_INT) {
+            cores[m->mapa[i]->cor - FIRST_COLOR].n_int++;
+        }
+    }
+
+    // Calcula quantos faltam:
+    for(i=0; i<m->tam; ++i) {
+        faltam[m->mapa[i]->cor - FIRST_COLOR]++;
+    }
+
+    // Vê se tem alguma cor que é 100% eliminada:
+    for(i=0; i<m->ncores; ++i) {
+        if(faltam[i] != 0 && faltam[i] == cores[i].n_int + cores[i].n_ext) {
+            //mostra_mapa_cor(m, 0);
+            return i + FIRST_COLOR;
+        }
+    }
+
+    for(i=0; i<m->ncores; ++i) {
+        if(cores[best].n_ext < cores[i].n_ext || (cores[best].n_ext == cores[i].n_ext && cores[best].n_int < cores[i].n_int)) {
+            best = i;
+        }
+    }
+
+    return best + FIRST_COLOR;
 }
 

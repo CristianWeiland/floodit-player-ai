@@ -4,7 +4,7 @@ CFLAGS=-std=c99
 
 all: ia backtrack
 
-ia: ia.c bloco.o fronteira.o mapa.o utils.o grafo.o
+ia: ia.c fronteira.o mapa.o utils.o grafo.o
 	$(CC) -g -o $@ $^ -lm
 
 clean :
