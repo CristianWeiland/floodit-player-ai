@@ -204,6 +204,24 @@ void pinta_mapa(tmapa *m, int cor) {
     pinta(m, 0, 0, m->mapa[ID(0,0)]->cor, cor);
 }
 
+void pinta_fake_rec(tmapa *m, int l, int c, int fundo, int cor) {
+    m->mapa[ID(l,c)]->pintado = 1;
+    if(l < m->nlinhas - 1 && m->mapa[ID(l+1,c)]->cor == fundo && !m->mapa[ID(l+1,c)]->pintado)
+        pinta_fake_rec(m, l+1, c, fundo, cor);
+    if(c < m->ncolunas - 1 && m->mapa[ID(l,c+1)]->cor == fundo && !m->mapa[ID(l,c+1)]->pintado)
+        pinta_fake_rec(m, l, c+1, fundo, cor);
+    if(l > 0 && m->mapa[ID(l-1,c)]->cor == fundo && !m->mapa[ID(l-1,c)]->pintado)
+        pinta_fake_rec(m, l-1, c, fundo, cor);
+    if(c > 0 && m->mapa[ID(l,c-1)]->cor == fundo && !m->mapa[ID(l,c-1)]->pintado)
+        pinta_fake_rec(m, l, c-1, fundo, cor);
+}
+
+void pinta_mapa_fake(tmapa *m, int cor) {
+    if(cor == m->mapa[ID(0,0)]->cor)
+        return;
+    pinta_fake_rec(m, 0, 0, m->mapa[ID(0,0)]->cor, cor);
+}
+
 int acabou(tmapa m) {
     int i, cor = m.mapa[0]->cor;
     for(i=1; i<m.tam; ++i) {
@@ -242,6 +260,13 @@ inline void zera_counted2(tmapa *m) {
     }
 }
 
+inline void zera_pintados(tmapa *m) {
+    int i;
+    for(i=0; i<m->tam; ++i) {
+        m->mapa[i]->pintado = 0;
+    }
+}
+
 void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status) {
     // Antes de chamar isso, eu quero setar counted como 0 (usar zera_counted)!
     if(borda(i,j)) {
@@ -251,6 +276,24 @@ void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status) {
         return;
     m->mapa[ID(i,j)]->counted = 1;
     if(m->mapa[ID(i,j)]->cor == minha_cor) { // Achei outro cara com a minha cor. Seta status.
+        m->mapa[ID(i,j)]->status = status;
+        flood_set_status(m, i+1, j, minha_cor, status);
+        flood_set_status(m, i-1, j, minha_cor, status);
+        flood_set_status(m, i, j+1, minha_cor, status);
+        flood_set_status(m, i, j-1, minha_cor, status);
+    }
+    return; // Se cheguei aqui, eh porque essa celula nao eh da mesma cor, entao ignora.
+}
+
+void flood_set_status_fake(tmapa *m, int i, int j, int minha_cor, int status) {
+    // Antes de chamar isso, eu quero setar counted como 0 (usar zera_counted)!
+    if(borda(i,j)) {
+        return;
+    }
+    if(m->mapa[ID(i,j)]->counted)
+        return;
+    m->mapa[ID(i,j)]->counted = 1;
+    if(m->mapa[ID(i,j)]->cor == minha_cor || m->mapa[ID(i,j)]->pintado) { // Achei outro cara com a minha cor. Seta status.
         m->mapa[ID(i,j)]->status = status;
         flood_set_status(m, i+1, j, minha_cor, status);
         flood_set_status(m, i-1, j, minha_cor, status);

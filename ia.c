@@ -93,7 +93,7 @@ int resolve(tmapa *m) {
     while(!acabou(*m)) {
         cor = guloso_fronteira_externa_com_otima(m);
         pinta_mapa(m, cor);
-        printf("%d ", cor);
+        printf("%d\n", cor);
         ++Njogadas;
 
         if(Njogadas > 10000) {
@@ -136,6 +136,8 @@ int main(int argc, char **argv) {
     resolve(&m);
 
     printf("0\n");
+
+    printf("%d jogadas.\n", Njogadas);
 
     return 0;
 }

@@ -42,11 +42,15 @@ void mostra_mapa_status(tmapa *m);
 void mostra_mapa_param(tmapa *m, int print);
 void pinta(tmapa *m, int l, int c, int fundo, int cor);
 void pinta_mapa(tmapa *m, int cor);
+void pinta_fake_rec(tmapa *m, int l, int c, int fundo, int cor);
+void pinta_mapa_fake(tmapa *m, int cor);
 int acabou(tmapa m);
 int borda(int i, int j);
 void zera_status(tmapa *m);
 void zera_counted(tmapa *m);
 void zera_counted2(tmapa *m);
+void zera_pintados(tmapa *m);
 void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status);
+void flood_set_status_fake(tmapa *m, int i, int j, int minha_cor, int status);
 
 #endif
