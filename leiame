@@ -1,0 +1,155 @@
+Explicação da ideia do algoritmo:
+    - O algoritmo constitui de duas partes: expansão e resolução.
+      1. Expansão: O algoritmo busca aumentar a fronteira. Para isso, ele
+                   'anda' até algum outro ponto do tabuleiro, próximo do canto
+                   sudeste. Para escolher este ponto a matriz é dividida em 4
+                   blocos, e o ponto escolhido é o que necessita de menos jogadas
+                   para ser alcançado.
+      2. Resolução: A fronteira do algoritmo é separada em interna e externa. Um
+                    bloco de células será considerado fronteira externa se, ao ser
+                    acoplado, aumentar a fronteira atual. Portanto, faz parte da
+                    fronteira interna blocos que estão rodeados por células da cor
+                    atual e/ou por células da borda.
+                    Tendo em vista estas duas fronteiras, o algoritmo busca a cor
+                    que garantirá uma maior expansão considerando a fronteira
+                    externa das duas próximas jogadas. A fronteira interna é usada
+                    apenas para desempate.
+                    Além disso, durante a resolução sempre é feita uma busca entre
+                    todas as cores para ver se alguma delas pode ser completamente
+                    eliminada. Se isso ocorre, essa é uma jogada ótima, então ela
+                    é sempre escolhida, independentemente das fronteiras.
+
+Explicação dos arquivos:
+
+    Todos os seguintes arquivos possuem o respectivo header, com cabeçalhos de funções, defines, etc.
+
+    ia.c --> Contém as principais funções pra rodar o programa (chama todas as outras funções e imprime o resultado final);
+    fronteira.c --> Contém funções que tratam das fronteiras: identificar células na fronteira, definir se é fronteira interna
+                    ou externa e, tendo as fronteiras definidas, descobrir qual é a 'melhor' jogada a se fazer.
+    mapa.c --> Contém funções que auxiliam na operação do mapa, como: inicializar algumas variáveis, imprimir o mapa, pintar ele,
+               pintar 'de mentirinha' (para poder observar a próxima jogada sem estragar o mapa), allocar e desallocar memória,
+               ver se determinada célula faz parte da borda, ver se o tabuleiro foi resolvido.
+    grafo.c --> Contém funções que geram e usam um grafo auxiliar para o tabuleiro.
+    utils.c --> Contém funções genéricas que auxiliam as outras, tais como: funções genéricas para grafos (allocar e desallocar
+                grafo, vértice e aresta, imprimir grafo), funções genéricas de listas (allocar, desallocar, inserir, remover,
+                imprimir). Possui também funções de comparação para ordenar vetor. Além disso, contém definições de estruturas
+                de dados.
+
+Entrada: Número de linhas, colunas e cores e, em seguida, um mapa.
+
+Saída: O número de jogadas necessárias e, em seguida, a sequência de jogadas do algoritmo.
+
+Estruturas de dados:
+
+    Grafo, vértice e aresta: juntos compõe um grafo.
+    Grafo --> Formado por uma lista de vértices, e possui um vértice chamado 'lider', que
+              é o vértice que representa o bloco de células do canto superior esquerdo.
+    Vértice --> bloco de células da mesma cor. Elems indica quantas células existem no vértice.
+    Aresta --> Indica vizinhança entre dois vértices. Vs simboliza o vértice de saída, vc o
+               vértice de chegada. Nem todas as arestas são incluídas; apenas as que formam o
+               menor caminho. Em outras palavras, o grafo é um grafo de menores caminhos, sendo
+               que todos os caminhos começam no vértice líder e acabam em todos os outros vértices.
+    struct grafo {
+        int len;
+        char *nome;
+        lista v;
+        vertice lider;
+    };
+
+    struct vertice {
+        int *i, *j, cor, id, elems, d;
+        lista saida, entrada;
+    };
+
+    struct aresta {
+        vertice vs, vc;
+        long int peso;
+    };
+
+    Avaliador --> Auxilia na contagem de células que podem ser eliminados. Essa estrutura é utilizada
+                  para decidir se uma cor pode ser completamente eliminada e também é usada para
+                  escolher qual a melhor jogada, considerando também a próxima jogada.
+    struct avaliador {
+        int cor, n_int, n_ext;
+    };
+
+    Lista e no: juntos compõe uma lista.
+    Lista --> possui algumas propriedades e sabe quem é o nó inicial (primeiro).
+    No --> Uma estrutura que possui um conteúdo qualquer (void *) e um apontador para o próximo nó da lista.
+           Quando o próximo nó é NULL, a lista chegou ao fim.
+    struct no {
+        void *conteudo;
+        no proximo;
+    };
+    struct lista {
+        unsigned int tamanho;
+        int padding;
+        no primeiro;
+    };
+
+    Tmapa --> Representa o tabuleiro. Possui algumas informações a respeito deste (nlinhas, ncolunas, ncores e tam)
+              e um vetor de celulas, que é usado como uma matriz. Ele é implementado como um vetor pois garante que
+              a memória fique contígua, aproveitando melhor a memória cache. Para facilitar utilizar esse vetor, foi
+              criada uma função chamada ID, que recebe como parâmetro dois inteiros (i,j) e retorna a posição x no
+              vetor que corresponderia à posição i,j caso esta estrutura fosse uma matriz. Desta forma, é possível
+              acessar o vetor da forma: m->mapa[ID(i,j)], que seria equivalente a m->mapa[i,j] caso este fosse uma
+              matriz.
+    Celula --> Um elemento do tabuleiro. Possui uma cor, um vértice (o vértice que representa o bloco
+               de cor em que a célula está localizada) e algumas propriedades que servem como armazenadores
+               temporários, para auxiliar as funções.
+    struct tmapa {
+        int nlinhas;
+        int ncolunas;
+        int ncores;
+        int tam;
+        celula *mapa;
+    };
+    struct celula {
+        int cor, counted, status, counted2, pintado;
+        vertice v;
+    };
+
+Explicação das funções (separadas por arquivo):
+
+int resolve(tmapa *m); --> Recebe como parâmetro um tabuleiro e imprime uma sequência de jogadas que formam a solução.
+                           Começa 'andando' para o bloco sudeste da matriz e termina executando um algoritmo guloso
+                           que decide a jogada olhando para as duas próximas jogadas.
+
+void prepara_fronteiras(tmapa *m); --> Gerencia as outras funções que trabalham nas fronteiras.
+int guloso_fronteira_externa(tmapa *m);
+void define_fronteira_vizinhos(tmapa *m, int i, int j);
+void define_front_int_ext(tmapa *m);
+int tipo_fronteira(tmapa *m, int i, int j, int cor);
+int checa_condicoes(tmapa *m, int i, int j, int cor);
+int guloso_fronteira_externa_com_otima(tmapa *m);
+avaliador lookAhead(tmapa *m, avaliador *cores, int cor);
+void calcula_fronteira_com_fakes(tmapa *m);
+void define_fronteira_vizinhos_fake(tmapa *m, int i, int j);
+void define_front_int_ext_fake(tmapa *m);
+int tipo_fronteira_fake(tmapa *m, int i, int j, int cor);
+int checa_condicoes_fake(tmapa *m, int i, int j, int cor);
+
+int ID(int i, int j);
+void gera_mapa(tmapa *m, int semente);
+void carrega_mapa(tmapa *m);
+tmapa* copia_tmapa(tmapa *m);
+void destroi_tmapa(tmapa *m, int destruir_vertices);
+void mostra_mapa(tmapa *m);
+void mostra_mapa_cor(tmapa *m, int shouldClear);
+void mostra_mapa_status(tmapa *m);
+void mostra_mapa_param(tmapa *m, int print);
+void pinta(tmapa *m, int l, int c, int fundo, int cor);
+void pinta_mapa(tmapa *m, int cor);
+void pinta_fake_rec(tmapa *m, int l, int c, int fundo, int cor);
+void pinta_mapa_fake(tmapa *m, int cor);
+int acabou(tmapa m);
+int borda(int i, int j);
+void zera_status(tmapa *m);
+void zera_counted(tmapa *m);
+void zera_counted2(tmapa *m);
+void zera_pintados(tmapa *m);
+void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status);
+void flood_set_status_fake(tmapa *m, int i, int j, int minha_cor, int status);
+void bloco_baixo_direita(int *x1, int *y1, int *x2, int *y2);
+
+Implementação do algoritmo:

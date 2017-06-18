@@ -9,68 +9,6 @@
 #include "grafo.h"
 #include "fronteira.h"
 
-vertice vertice_menor_distancia(tmapa *m, int x1, int y1, int x2, int y2) {
-    int i, j, x, y;
-    vertice menor = m->mapa[ID(x1,y1)]->v;
-    x = x1;
-    y = y1;
-    for(i=x1; i<x2; ++i) {
-        for(j=y1; j<y2; ++j) {
-            if(m->mapa[ID(i,j)]->v->d < menor->d) {
-                menor = m->mapa[ID(i,j)]->v;
-                x = i;
-                y = j;
-            }
-        }
-    }
-    return menor;
-}
-
-void bloco_baixo_direita(int *x1, int *y1, int *x2, int *y2) {
-    *x1 = (int) (Linhas * 3) / 4;
-    *y1 = (int) (Colunas * 3) / 4;
-    *x2 = Linhas;
-    *y2 = Colunas;
-}
-
-int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas) {
-    // Cria um vetor de v->d jogadas, que fazem vc sair de g->lider e chegar em v.
-    // Devolve a posição da primeira jogada (deveria ser 0). O vetor acab em v->d;
-
-    int i, debug = 0;
-    vertice w;
-    aresta a;
-    no elem;
-
-    *jogadas = (int *) malloc(v->d * sizeof(int));
-
-    if(debug) {
-        mostra_mapa_cor(m, 0);
-        escreve_grafo(stdout, g);
-        printf("Comecando no vertice %d, cor %d, elems %d\n", v->id, v->cor, v->elems);
-    }
-
-    for(i = v->d-1, w = v; w != g->lider && i >= 0; --i) {
-        // Adiciona a cor do vertice que eu quero pintar.
-        (*jogadas)[i] = w->cor;
-        if(debug)
-            printf("Jogada = %d, elems = %d\n", (*jogadas)[i], w->elems);
-        // Faz w apontar pro vertice anterior.
-        elem = primeiro_no(w->entrada);
-        if(!elem) {
-            puts("(menor_caminho) Nao consegui achar caminho.");
-            exit(1);
-        }
-        a = (aresta) conteudo(elem);
-        w = a->vs;
-    }
-
-    if(i != -1) {
-        puts("Funcao menor_caminho pode ter problema no i. Conferir please.");
-    }
-    return 0;
-}
-
 int resolve(tmapa *m) {
     int cor, i, first, last, *jogadas, x1, x2, y1, y2;
     grafo g;
@@ -95,11 +33,6 @@ int resolve(tmapa *m) {
         pinta_mapa(m, cor);
         printf("%d\n", cor);
         ++Njogadas;
-
-        if(Njogadas > 10000) {
-            printf("Acho que loop infinito. Quitando...\n");
-            exit(1);
-        }
     }
 
     destroi_tmapa(m, 0);
@@ -135,9 +68,7 @@ int main(int argc, char **argv) {
 
     resolve(&m);
 
-    printf("0\n");
-
-    printf("%d jogadas.\n", Njogadas);
+    printf("\n%d jogadas.\n", Njogadas);
 
     return 0;
 }

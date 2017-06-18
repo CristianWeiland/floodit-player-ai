@@ -280,20 +280,7 @@ grafo escreve_grafo(FILE *output, grafo g) {
 
     fprintf(output,"\n");
 
-    // Imprime todas as arestas, percorrendo todas as listas de entrada dos vertices
-/*
-    for(elem = primeiro_no(g->v); elem; elem = proximo_no(elem)) {
-        v = (vertice) conteudo(elem);
-        for(childElem = primeiro_no(v->entrada); childElem; childElem = proximo_no(childElem)) {
-            a = (aresta) conteudo(childElem);
-            fprintf(output,"   \"%d\" -- \"%d\"", a->vs->id, a->vc->id);
-            if(a->peso != PESO_DEFAULT)
-                fprintf(output," [peso=%ld]", a->peso);
-            fprintf(output,"\n");
-        }
-    }
-*/
-    /* Imprime Ordenado */
+    // Imprime todas as arestas ordenadamente
     aresta *ar;
     ar = (aresta *) malloc(100 * sizeof(aresta));
     int i=0, len, aux;
@@ -314,7 +301,6 @@ grafo escreve_grafo(FILE *output, grafo g) {
         fprintf(output,"   \"%d\" -- \"%d\"\n", ar[i]->vs->id, ar[i]->vc->id);
     }
     free(ar);
-    /**/
 
     fprintf(output,"}\n");
 
@@ -329,10 +315,6 @@ int comp_avaliador(const void * elem1, const void * elem2) {
     // Se cheguei aqui, n_ext eh igual.
     if(f.n_int > s.n_int) return -1;
     if(f.n_int < s.n_int) return  1;
-/*
-    if (f.n > s.n) return -1;
-    if (f.n < s.n) return  1;
-*/
     return 0;
 }
 

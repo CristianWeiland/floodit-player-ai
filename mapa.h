@@ -52,5 +52,6 @@ void zera_counted2(tmapa *m);
 void zera_pintados(tmapa *m);
 void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status);
 void flood_set_status_fake(tmapa *m, int i, int j, int minha_cor, int status);
+void bloco_baixo_direita(int *x1, int *y1, int *x2, int *y2);
 
 #endif

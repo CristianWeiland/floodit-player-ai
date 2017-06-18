@@ -302,3 +302,10 @@ void flood_set_status_fake(tmapa *m, int i, int j, int minha_cor, int status) {
     }
     return; // Se cheguei aqui, eh porque essa celula nao eh da mesma cor, entao ignora.
 }
+
+void bloco_baixo_direita(int *x1, int *y1, int *x2, int *y2) {
+    *x1 = (int) (Linhas * 3) / 4;
+    *y1 = (int) (Colunas * 3) / 4;
+    *x2 = Linhas;
+    *y2 = Colunas;
+}

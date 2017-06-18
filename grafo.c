@@ -48,7 +48,6 @@ void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v) {
     celula c = m->mapa[ID(i,j)];
     if(c->counted || v->cor != c->cor)
         return;
-    //printf("Vertice %d ganhou %d e %d na posicao %d.\n", v->id, i, j, v->elems);
     v->i[v->elems] = i;
     v->j[v->elems] = j;
     ++(v->elems);
@@ -64,26 +63,16 @@ void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v) {
 void cria_arestas(tmapa *m, grafo g) {
     no elem;
     int i, j, repetido, head, tail = 1; // Head vai indicar qual elemento eu devo olhar em l, pois nao vou remove-los, apenas ignora-los.
-                              // Tail serve pra saber onde eu devo adicionar o proximo elemento e quando parar o laco.
-    //vertice l[g->len*g->len*g->len], v;
+                                        // Tail serve pra saber onde eu devo adicionar o proximo elemento e quando parar o laco.
     vertice *l, v;
     aresta a;
 
-    //printf("Alocando %d bytes... Len = %d\n", g->len * g->len * g->len * sizeof(vertice), g->len);
-    //long int len = g->len * g->len * g->len * sizeof(vertice);
     int len = g->len * sizeof(vertice);
     l = (vertice *) malloc(len);
     if(!l) {
         printf("(cria_arestas) Erro de malloc. Pedindo %d memoria.G->len = %d, size = %d\n", len, g->len, sizeof(vertice));
         exit(1);
     }
-
-    /*
-        Porque nao allocar soh g->len pra l? A resposta eh porque as vezes eu adiciono o mesmo vertice mais do que uma vez.
-        Isso muitas vezes eh ruim, mas nao sempre. Por exemplo: Se eu achei um caminho menor pro vertice v, entao v->d vai mudar pra um numero menor.
-        Isso significa que eu devo conferir se suas arestas estao certas, pois eh bem provavel que isso crie uma reacao em cadeia que vai achar
-        caminhos menores pra varios outros vertices.
-    */
 
     zera_counted(m);
 
@@ -114,14 +103,12 @@ void cria_arestas(tmapa *m, grafo g) {
                 l[tail] = a->vc;
                 ++tail;
                 if(tail > len) {
-                    printf("Aumentando tamanho de %d pra %d.", len, 2*len);
                     len *= 2;
                     l = (vertice *) realloc(l, len);
                 }
             }
         }
     }
-    //printf("Usei %d elementos.\n", tail);
 
     free(l);
 }
@@ -204,7 +191,6 @@ void pega_vizinhos(tmapa *m, int i, int j, vertice v) {
         m->mapa[ID(i,j)]->v->d = novaDistancia;
         return;
     }
-    printf("Oopsie! Nao era pra chegar aqui...\n");
     return;
 }
 
@@ -224,4 +210,59 @@ grafo cria_grafos(tmapa *m) {
         }
     }
     return g;
+}
+
+vertice vertice_menor_distancia(tmapa *m, int x1, int y1, int x2, int y2) {
+    int i, j, x, y;
+    vertice menor = m->mapa[ID(x1,y1)]->v;
+    x = x1;
+    y = y1;
+    for(i=x1; i<x2; ++i) {
+        for(j=y1; j<y2; ++j) {
+            if(m->mapa[ID(i,j)]->v->d < menor->d) {
+                menor = m->mapa[ID(i,j)]->v;
+                x = i;
+                y = j;
+            }
+        }
+    }
+    return menor;
+}
+
+int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas) {
+    // Cria um vetor de v->d jogadas, que fazem vc sair de g->lider e chegar em v.
+    // Devolve a posição da primeira jogada (deveria ser 0). O vetor acab em v->d;
+
+    int i, debug = 0;
+    vertice w;
+    aresta a;
+    no elem;
+
+    *jogadas = (int *) malloc(v->d * sizeof(int));
+
+    if(debug) {
+        mostra_mapa_cor(m, 0);
+        escreve_grafo(stdout, g);
+        printf("Comecando no vertice %d, cor %d, elems %d\n", v->id, v->cor, v->elems);
+    }
+
+    for(i = v->d-1, w = v; w != g->lider && i >= 0; --i) {
+        // Adiciona a cor do vertice que eu quero pintar.
+        (*jogadas)[i] = w->cor;
+        if(debug)
+            printf("Jogada = %d, elems = %d\n", (*jogadas)[i], w->elems);
+        // Faz w apontar pro vertice anterior.
+        elem = primeiro_no(w->entrada);
+        if(!elem) {
+            puts("(menor_caminho) Nao consegui achar caminho.");
+            exit(1);
+        }
+        a = (aresta) conteudo(elem);
+        w = a->vs;
+    }
+
+    if(i != -1) {
+        puts("Funcao menor_caminho pode ter problema no i. Conferir please.");
+    }
+    return 0;
 }

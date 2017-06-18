@@ -10,5 +10,7 @@ void adiciona_vizinhanca(tmapa *m, int i, int j, vertice v);
 void cria_arestas(tmapa *m, grafo g);
 void pega_vizinhos(tmapa *m, int i, int j, vertice v);
 grafo cria_grafos(tmapa *m);
+vertice vertice_menor_distancia(tmapa *m, int x1, int y1, int x2, int y2);
+int menor_caminho(tmapa *m, grafo g, vertice v, int **jogadas);
 
 #endif
