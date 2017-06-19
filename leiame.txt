@@ -1,7 +1,7 @@
-Explicação da ideia do algoritmo:
+Explicação do que o algoritmo faz:
     - O algoritmo constitui de duas partes: expansão e resolução.
       1. Expansão: O algoritmo busca aumentar a fronteira. Para isso, ele
-                   'anda' até algum outro ponto do tabuleiro, próximo do canto
+                  'anda' até algum outro ponto do tabuleiro, próximo do canto
                    sudeste. Para escolher este ponto a matriz é dividida em 4
                    blocos, e o ponto escolhido é o que necessita de menos jogadas
                    para ser alcançado.
@@ -9,7 +9,7 @@ Explicação da ideia do algoritmo:
                     bloco de células será considerado fronteira externa se, ao ser
                     acoplado, aumentar a fronteira atual. Portanto, faz parte da
                     fronteira interna blocos que estão rodeados por células da cor
-                    atual e/ou por células da borda.
+                    atual e/ou por células da borda (e nunca rodeados por outra cor).
                     Tendo em vista estas duas fronteiras, o algoritmo busca a cor
                     que garantirá uma maior expansão considerando a fronteira
                     externa das duas próximas jogadas. A fronteira interna é usada
@@ -18,6 +18,22 @@ Explicação da ideia do algoritmo:
                     todas as cores para ver se alguma delas pode ser completamente
                     eliminada. Se isso ocorre, essa é uma jogada ótima, então ela
                     é sempre escolhida, independentemente das fronteiras.
+Explicação de como o algoritmo o faz:
+    1. Expansão: A partir do tabuleiro crio um grafo contendo caminhos mínimos do vértice
+                 lider para todos os outros (mas não entre os outros, apenas com o vértice
+                 como fonte do caminho). Desta forma, posso facilmente descobrir qual é o
+                 vértice mais fácil de ser alcançado no canto sudeste. Então eu 'ando' até
+                 o vértice no bloco sudeste do tabuleiro que eu precise de menos jogadas.
+    2. Resolução: Nesta parte do algoritmo eu deixo de usar o grafo, e passo a usar a 'matriz'
+                  de células normalmente. A cada jogada, sigo alguns passos (guloso olhando duas jogadas):
+                  1- Define quais células são fronteira (independentemente se interna ou externa);
+                  2- Das células fronteiras, separa-as em fronteira interna e externa;
+                  3- Para cada cor C1 possível, 'finge' pintar o mapa com a cor C1 e faz tudo novamente,
+                     escolhendo uma outra cor C2, tal que C2 seja a cor que pinta mais células da fronteira
+                     externa para cada C1.
+                  4- Escolhe C1 tal que o número de células pintadas com C1 e C2 seja o maior possível. Se
+                     o número de células da fronteira externa empatar entre duas combinações diferentes de
+                     cores, a fronteira interna é usada para desempate.
 
 Explicação dos arquivos:
 
@@ -108,48 +124,3 @@ Estruturas de dados:
         int cor, counted, status, counted2, pintado;
         vertice v;
     };
-
-Explicação das funções (separadas por arquivo):
-
-int resolve(tmapa *m); --> Recebe como parâmetro um tabuleiro e imprime uma sequência de jogadas que formam a solução.
-                           Começa 'andando' para o bloco sudeste da matriz e termina executando um algoritmo guloso
-                           que decide a jogada olhando para as duas próximas jogadas.
-
-void prepara_fronteiras(tmapa *m); --> Gerencia as outras funções que trabalham nas fronteiras.
-int guloso_fronteira_externa(tmapa *m);
-void define_fronteira_vizinhos(tmapa *m, int i, int j);
-void define_front_int_ext(tmapa *m);
-int tipo_fronteira(tmapa *m, int i, int j, int cor);
-int checa_condicoes(tmapa *m, int i, int j, int cor);
-int guloso_fronteira_externa_com_otima(tmapa *m);
-avaliador lookAhead(tmapa *m, avaliador *cores, int cor);
-void calcula_fronteira_com_fakes(tmapa *m);
-void define_fronteira_vizinhos_fake(tmapa *m, int i, int j);
-void define_front_int_ext_fake(tmapa *m);
-int tipo_fronteira_fake(tmapa *m, int i, int j, int cor);
-int checa_condicoes_fake(tmapa *m, int i, int j, int cor);
-
-int ID(int i, int j);
-void gera_mapa(tmapa *m, int semente);
-void carrega_mapa(tmapa *m);
-tmapa* copia_tmapa(tmapa *m);
-void destroi_tmapa(tmapa *m, int destruir_vertices);
-void mostra_mapa(tmapa *m);
-void mostra_mapa_cor(tmapa *m, int shouldClear);
-void mostra_mapa_status(tmapa *m);
-void mostra_mapa_param(tmapa *m, int print);
-void pinta(tmapa *m, int l, int c, int fundo, int cor);
-void pinta_mapa(tmapa *m, int cor);
-void pinta_fake_rec(tmapa *m, int l, int c, int fundo, int cor);
-void pinta_mapa_fake(tmapa *m, int cor);
-int acabou(tmapa m);
-int borda(int i, int j);
-void zera_status(tmapa *m);
-void zera_counted(tmapa *m);
-void zera_counted2(tmapa *m);
-void zera_pintados(tmapa *m);
-void flood_set_status(tmapa *m, int i, int j, int minha_cor, int status);
-void flood_set_status_fake(tmapa *m, int i, int j, int minha_cor, int status);
-void bloco_baixo_direita(int *x1, int *y1, int *x2, int *y2);
-
-Implementação do algoritmo:

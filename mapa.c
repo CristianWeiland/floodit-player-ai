@@ -32,50 +32,18 @@ void gera_mapa(tmapa *m, int semente) {
                 puts("(gera_mapa) Erro de malloc em mapa[i].");
                 exit(1);
             }
-            m->mapa[ID(i,j)]->cor = 1 + rand() % m->ncores;
+            scanf("%d", &(m->mapa[ID(i,j)]->cor));
             m->mapa[ID(i,j)]->counted = 0;
             m->mapa[ID(i,j)]->v = NULL;
-        }
-    }
-}
-
-void carrega_mapa(tmapa *m) {
-    int i, j;
-
-    if(!scanf("%d", &(m->nlinhas)))
-        puts("Erro lendo linhas.");
-    if(!scanf("%d", &(m->ncolunas)))
-        puts("Erro lendo colunas.");
-    if(!scanf("%d", &(m->ncores)))
-        puts("Erro lendo cores.");
-    m->mapa = (celula *) malloc(m->nlinhas * m->ncolunas * sizeof(struct celula));
-    if(!m->mapa) {
-        puts("(jogada_otima) Erro de malloc.");
-        exit(1);
-    }
-    for(i = 0; i < m->nlinhas; i++) {
-        for(j = 0; j < m->ncolunas; j++) {
-            m->mapa[ID(i,j)] = (celula) malloc(sizeof(struct celula));
-            if(!m->mapa[ID(i,j)]) {
-                puts("(jogada_otima) Erro de malloc.");
-                exit(1);
-            }
-            m->mapa[ID(i,j)]->counted = 0;
-            m->mapa[ID(i,j)]->v = NULL;
-            //if(!scanf("%d", &(m->mapa[ID(i,j)])))
-            if(!scanf("%d", &(m->mapa[ID(i,j)]->cor)))
-                puts("Erro lendo cor.");
         }
     }
 }
 
 tmapa* copia_tmapa(tmapa *m) {
-    // Não testado!
     int i;
     tmapa *n = (tmapa *) malloc(sizeof(struct tmapa));
     memcpy(n, m, sizeof(struct tmapa));
     n->mapa = (celula *) malloc(n->tam * sizeof(celula));
-    // Não dá pra fazer um memcpy só porque é um struct celula**, ou seja, a memória tá toda perdida por aí...
     for(i=0; i<n->tam; ++i) {
         n->mapa[i] = (celula) malloc(sizeof(struct celula));
         memcpy(n->mapa[i], m->mapa[i], sizeof(struct celula));

@@ -5,6 +5,8 @@
 #include "mapa.h"
 #include "grafo.h"
 
+int *Sequencia;
+
 int resolve(tmapa *m);
 
 #endif

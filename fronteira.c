@@ -158,14 +158,13 @@ int guloso_fronteira_externa_com_otima(tmapa *m) {
     // Vê se tem alguma cor que é 100% eliminada:
     for(i=0; i<m->ncores; ++i) {
         if(faltam[i] != 0 && faltam[i] == cores[i].n_int + cores[i].n_ext) {
-            //mostra_mapa_cor(m, 0);
             return i + FIRST_COLOR;
         }
     }
 
-    melhor = lookAhead(m, cores, 0); // Seta como o primeiro valor retornado.
+    melhor = look_ahead(m, cores, 0); // Seta como o primeiro valor retornado.
     for(i=1; i<m->ncores; ++i) {
-        ret = lookAhead(m, cores, i);
+        ret = look_ahead(m, cores, i);
         if(ret.n_ext > melhor.n_ext || (ret.n_ext == melhor.n_ext && ret.n_int > melhor.n_ext)) {
             // Eu soh vou armazenar a cor da primeira das duas jogadas, pois soh vou executar uma de cada vez (entao nao me importa qual eh a segunda).
             melhor.cor = ret.cor;
@@ -174,17 +173,12 @@ int guloso_fronteira_externa_com_otima(tmapa *m) {
         }
     }
 
-    //printf("Escolhi %d\n", melhor.cor+FIRST_COLOR);
-
-//    return best + FIRST_COLOR;
     return melhor.cor + FIRST_COLOR;
 }
 
-avaliador lookAhead(tmapa *m, avaliador *cores, int cor) {
+avaliador look_ahead(tmapa *m, avaliador *cores, int cor) {
     avaliador cores2[m->ncores];
     int i, best;
-
-//    printf("Analisado pra cor %d, posso eliminar %d e %d.\n", cor, cores[cor].n_ext, cores[cor].n_int);
 
     zera_pintados(m);
     pinta_mapa_fake(m, cor);
@@ -213,8 +207,6 @@ avaliador lookAhead(tmapa *m, avaliador *cores, int cor) {
         }
     }
 
-//    printf("A proxima melhor eh %d. Dela, tiro %d e %d. Total: %d e %d.\n", );
-
     // O valor retornado vai ter quantas cores eu elimino em 2 jogadas:
     // 1- Jogada 'cor'
     // 2- A melhor jogada possivel depois de jogar 'cor' (no caso, cores2[best]).
@@ -226,20 +218,6 @@ avaliador lookAhead(tmapa *m, avaliador *cores, int cor) {
 
     return cores2[best];
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void calcula_fronteira_com_fakes(tmapa *m) {
     zera_status(m);

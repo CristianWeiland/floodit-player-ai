@@ -33,6 +33,7 @@ struct tmapa {
 
 int ID(int i, int j);
 void gera_mapa(tmapa *m, int semente);
+//tmapa* carrega_mapa();
 void carrega_mapa(tmapa *m);
 tmapa* copia_tmapa(tmapa *m);
 void destroi_tmapa(tmapa *m, int destruir_vertices);

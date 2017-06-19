@@ -23,15 +23,15 @@ int resolve(tmapa *m) {
     last = first + v->d;
     for(i=first; i<last; ++i) {
         pinta_mapa(m, jogadas[i]);
+		Sequencia[Njogadas] = jogadas[i];
         ++Njogadas;
-        printf("%d ", jogadas[i]);
     }
     free(jogadas);
 
     while(!acabou(*m)) {
         cor = guloso_fronteira_externa_com_otima(m);
         pinta_mapa(m, cor);
-        printf("%d\n", cor);
+		Sequencia[Njogadas] = cor;
         ++Njogadas;
     }
 
@@ -44,14 +44,7 @@ int main(int argc, char **argv) {
     int cor, semente;
     tmapa m;
 
-    if(argc < 4 || argc > 5) {
-        printf("uso: %s <numero_de_linhas> <numero_de_colunas> <numero_de_cores> [<semente_aleatoria>]\n", argv[0]);
-        exit(1);
-    }
-
-    m.nlinhas = atoi(argv[1]);
-    m.ncolunas = atoi(argv[2]);
-    m.ncores = atoi(argv[3]);
+	scanf("%d %d %d ", &(m.nlinhas), &(m.ncolunas), &(m.ncores));
     m.tam = m.nlinhas * m.ncolunas;
 
     Njogadas = 0;
@@ -59,16 +52,19 @@ int main(int argc, char **argv) {
     Colunas = m.ncolunas;
     TamMatriz = Linhas * Colunas;
 
-    if(argc == 5)
-        semente = atoi(argv[4]);
-    else
-        semente = -1;
+	Sequencia = malloc(TamMatriz * sizeof(int));
 
     gera_mapa(&m, semente);
 
     resolve(&m);
 
-    printf("\n%d jogadas.\n", Njogadas);
+    printf("%d\n", Njogadas);
+
+	int i;
+	for(i=0; i<Njogadas; ++i) {
+		printf("%d ", Sequencia[i]);
+	}
+	printf("\n");
 
     return 0;
 }
